@@ -127,7 +127,6 @@ public class Sender {
             presentLine[6] = String.valueOf(iNbCharactersInDataField);
             
             
-            
             // Stocker, dans 'sFrames', une ligne qui deviendra une trame.
             sFrames.add(presentLine.clone());
         }
