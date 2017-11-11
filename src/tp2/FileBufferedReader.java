@@ -14,7 +14,6 @@ import java.util.logging.Logger;
 public class FileBufferedReader {
     
     public FileBufferedReader(){
-        
     }
     
     public ArrayList<String> readFile(File file){
