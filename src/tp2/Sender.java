@@ -14,15 +14,13 @@ public class Sender {
     private final int NUM_FIELD_SIZE = 8;
     private final int CRC_FIELD_SIZE = 16;
     
-    // private Frame frame;
-    
     public Sender(){}
     
-    private void assembleLine(File file){
+    private ArrayList<Frame> makeFrames(File file){
         
         FileBufferedReader fbr = new FileBufferedReader();
         ArrayList<String> fileInfo = fbr.readFile(file);
-        ArrayList<String[]> sFrames = new ArrayList();
+        ArrayList<Frame> Frames = new ArrayList();
         
         // La ligne contenant les 6 éléments d"une trame:
         String[] presentLine;
@@ -37,7 +35,7 @@ public class Sender {
         for(int i=0; i<fileInfo.size(); i++){
             iNbCharactersInDataField = 0;
             
-            presentLine = new String[7];
+            presentLine = new String[6];
             
             
             // Flag de début de trame:
@@ -94,6 +92,7 @@ public class Sender {
                 presentIndex++;
                 iNbCharactersInDataField++;
             }
+            Data dataField = new Data(presentLine[3], iNbCharactersInDataField);
             
             
             // CRC:
@@ -121,14 +120,9 @@ public class Sender {
                     substring(presentIndex, FLAG_FIELD_SIZE);
             
             
-            // Nombre de caractères dans le champ de données (nécessaire pour
-            // savoir quelle taille/type de variable utiliser pour le champ de
-            // données au moment de bâtir la trame):
-            presentLine[6] = String.valueOf(iNbCharactersInDataField);
-            
-            
-            // Stocker, dans 'sFrames', une ligne qui deviendra une trame.
-            sFrames.add(presentLine.clone());
+            // Stocker, dans 'Frames', une trame.
+            Frames.add(new Frame(presentLine, dataField));
         }
+        return Frames;
     }
 }
