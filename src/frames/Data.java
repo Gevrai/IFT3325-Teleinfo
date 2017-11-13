@@ -1,9 +1,5 @@
-package tp2;
+package frames;
 
-/**
- *
- * @author Sebastien
- */
 public class Data {
     String sData;
     

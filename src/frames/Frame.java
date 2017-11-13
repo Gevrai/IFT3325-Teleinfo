@@ -1,21 +1,38 @@
-package tp2;
+package frames;
 
 import java.io.File;
 import java.util.ArrayList;
 
-/**
- *
- * @author Sebastien
- */
-public class Sender {
-    // Tailles des différents champs en nombre de caractères:
-    private final int FLAG_FIELD_SIZE = 8;
-    private final int TYPE_FIELD_SIZE = 1;
-    private final int NUM_FIELD_SIZE = 8;
-    private final int CRC_FIELD_SIZE = 16;
+import utils.FileBufferedReader;
+
+public class Frame {
+    // Tailles des différents champs en nombre d'octets
+    private static final int FLAG_FIELD_SIZE = 1;
+    private static final int TYPE_FIELD_SIZE = 1;
+    private static final int NUM_FIELD_SIZE = 1;
+    private static final int CRC_FIELD_SIZE = 2;
+
+    // | 1 Byte | 1 Byte | 1 Byte |    X Byte(s)   | 2 Bytes | 1 Byte |
+    // |--------|--------|--------|----------------|---------|--------|
+    // | Flag   |  Type  |  Num   |      Data      |   CRC   |  Flag  |
+    // |--------|--------|--------|----------------|---------|--------|
     
-    public Sender(){}
+    private byte flagStart;
+    private byte type;
+    private byte num;
+    private Data dataField;
+    private short CRC;
+    private byte flagEnd;
     
+    public Frame(String[] line, Data dataField){
+        this.flagStart = Byte.valueOf(line[0]);
+        this.type = Byte.valueOf(line[1]);
+        this.num = Byte.valueOf(line[2]);
+        this.dataField = dataField;
+        this.CRC = Short.valueOf(line[4]);
+        this.flagEnd = Byte.valueOf(line[5]);
+    }
+
     private ArrayList<Frame> makeFrames(File file){
         
         FileBufferedReader fbr = new FileBufferedReader();
