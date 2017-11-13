@@ -92,7 +92,7 @@ public class Sender {
                 presentIndex++;
                 iNbCharactersInDataField++;
             }
-            Data dataField = new Data(presentLine[3], iNbCharactersInDataField);
+            Data dataField = new Data(presentLine[3]);
             
             
             // CRC:
