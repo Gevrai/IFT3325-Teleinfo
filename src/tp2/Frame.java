@@ -5,12 +5,12 @@ package tp2;
  * @author Sebastien
  */
 public class Frame {
-    private final byte flagStart; // 1 byte
-    private final byte type; // 1 byte
-    private final byte num; // 1 byte
-    private final Data dataField; // size varies
-    private final short CRC; // 2 bytes
-    private final byte flagEnd; // 1 byte
+    private byte flagStart; // 1 byte
+    private byte type; // 1 byte
+    private byte num; // 1 byte
+    private Data dataField; // size varies
+    private short CRC; // 2 bytes
+    private byte flagEnd; // 1 byte
     
     public Frame(String[] line, Data dataField){
         this.flagStart = Byte.valueOf(line[0]);
