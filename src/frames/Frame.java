@@ -14,23 +14,20 @@ public class Frame {
 
     // | 1 Byte | 1 Byte | 1 Byte |    X Byte(s)   | 2 Bytes | 1 Byte |
     // |--------|--------|--------|----------------|---------|--------|
-    // | Flag   |  Type  |  Num   |      Data      |   CRC   |  Flag  |
+    // |  Flag  |  Type  |  Num   |      Data      |   CRC   |  Flag  |
     // |--------|--------|--------|----------------|---------|--------|
     
-    private byte flagStart;
+    private static final byte flag = (byte) 0b01111110;
     private byte type;
     private byte num;
     private Data dataField;
     private short CRC;
-    private byte flagEnd;
     
-    public Frame(String[] line, Data dataField){
-        this.flagStart = Byte.valueOf(line[0]);
-        this.type = Byte.valueOf(line[1]);
-        this.num = Byte.valueOf(line[2]);
-        this.dataField = dataField;
-        this.CRC = Short.valueOf(line[4]);
-        this.flagEnd = Byte.valueOf(line[5]);
+    public Frame(byte type, byte num, Data data){
+        this.type = type;
+        this.num = num;
+        this.dataField = data;
+        this.CRC = calculateCRC();
     }
 
     private ArrayList<Frame> makeFrames(File file){
