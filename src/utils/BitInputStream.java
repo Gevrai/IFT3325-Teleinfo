@@ -10,9 +10,9 @@ import java.io.InputStream;
  */
 public class BitInputStream {
 	
-	InputStream istream;
-	byte current;
-	int pos;
+	private InputStream istream;
+	private byte current;
+	private int pos;
 	
 	public BitInputStream(InputStream istream) {
 		this.istream = istream;
