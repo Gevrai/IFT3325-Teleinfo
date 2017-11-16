@@ -6,7 +6,7 @@ CLASSPATH := $(TEST_DIR)/lib/junit-4.12.jar:$(TEST_DIR)/lib/hamcrest-core-1.3.ja
 
 MAIN-RECEIVER = receiver.Receiver
 MAIN-SENDER = sender.Sender
-TESTS = tests.test
+TESTS = tests.BitStreamTest
 
 CLASSES := \
 	./src/utils/*.java \
