@@ -20,16 +20,15 @@ public class BitInputStream {
 		this.pos = 0;
 	}
 	
-	// Reads from least to most significant bit in each byte
-	public byte read() throws IOException {
+	// Reads from most to least significant bit in each byte
+	public byte readBit() throws IOException {
 		if (pos == 0) {
 			current = (byte) istream.read();
 			if (current == -1) throw new IOException("Reached end of stream");
 		}
-		byte bitmask = (byte) (1 << pos);
-		byte b = ((current & bitmask) == 0) ? (byte) 0 : (byte) 1;
-		pos = (pos+1) % Byte.SIZE;
-		return b;
+		byte bitmask = (byte) (0b10000000 >> pos);
+		pos = (pos+1)%Byte.SIZE;
+		return ((current & bitmask) == 0) ? (byte) 0 : (byte) 1;
 	}
 
 }
