@@ -1,8 +1,7 @@
 package sender;
 
-import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.Socket;
 
 public class Sender {
@@ -21,16 +20,10 @@ public class Sender {
 	}
 	
 	// Just testing.....
-	public void run() throws IOException {
-		byte buffer[] = new byte[256];
+	public void sendFile(File file) throws IOException {
 		Socket socket = new Socket(this.machineName, this.portNumber);
-		BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		
-		String line;
-		while ( (line = reader.readLine()) != null) {
-			System.out.println(line);
-		}
-
+		// Demande de connexion
 	}
 
 	public static void main(String[] args) {
@@ -43,7 +36,8 @@ public class Sender {
 		
 		try {
 			Sender sender = new Sender(args[0], args[1], args[2], args[3]);
-			sender.run();
+			File fileToSend = new File(args[2]);
+			sender.sendFile(fileToSend);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
