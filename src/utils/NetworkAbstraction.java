@@ -1,4 +1,4 @@
-package sender;
+package utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -10,8 +10,6 @@ import frames.Frame;
 import frames.FrameFactory;
 import frames.InformationFrame;
 import frames.MalformedFrameException;
-import utils.BitInputStream;
-import utils.BitOutputStream;
 
 public class NetworkAbstraction {
 
@@ -21,8 +19,8 @@ public class NetworkAbstraction {
 	 * 
 	 * Takes care of bit stuffing and flagging
 	 * 
-	 * @param f Frame to send
-	 * @param s Socket where to send the frame
+	 * @param frame Frame to send
+	 * @param outputStream Where to send the frame
 	 * @throws IOException
 	 */
 	public static void sendFrame(Frame frame, OutputStream outputStream) throws IOException {
@@ -71,7 +69,7 @@ public class NetworkAbstraction {
 	 * 
 	 * Takes care of bit unstuffing and unflagging
 	 * 
-	 * @param s Socket where to get the frame
+	 * @param inputStream Where we get the frame from
 	 * @return A valid frame
 	 * @throws IOException
 	 */
@@ -136,20 +134,24 @@ public class NetworkAbstraction {
 			
 			// Read bit
 			bit = istream.readBit();
-			if (bit == 0) nbOfOnes = 0;
-			else nbOfOnes++;
-			
 			ostream.writeBit(bit);
+
+			// Count ones
+			if (bit == 0) 
+				nbOfOnes = 0;
+			else 
+				nbOfOnes++;
 		}
 		
 		// Readying up the array !
+		bytes.flush();
 		byte[] resultFlagged = bytes.toByteArray();
-		// Make sure we got a frame surrounded by flags
-		if(resultFlagged[0] != flag || resultFlagged[resultFlagged.length-1] != flag)
+		// Make sure we got a frame ending with a flag
+		if(resultFlagged[resultFlagged.length-1] != flag)
 			throw new MalformedFrameException();
 		
 		// Unflag it and make a new frame !
-		byte[] result = Arrays.copyOfRange(resultFlagged, 1 , resultFlagged.length - 2);
+		byte[] result = Arrays.copyOfRange(resultFlagged, 0, resultFlagged.length - 1);
 		return FrameFactory.fromBytes(result);
 	}
 	

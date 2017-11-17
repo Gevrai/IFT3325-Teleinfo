@@ -10,14 +10,25 @@ public class FrameFactory {
 			throw new MalformedFrameException();
 		
 		// Instantiates the right type of frame
-		switch (frameBytes[0]) {
-			case ((byte) 'I') :
+		char type = (char) frameBytes[0];
+		switch (type) {
+			case ('I') :
 				byte num = frameBytes[Frame.TYPE_FIELD_SIZE];
 				byte[] data = Arrays.copyOfRange(frameBytes, 
 						Frame.TYPE_FIELD_SIZE + Frame.NUM_FIELD_SIZE, 
-						frameBytes.length - Frame.CRC_FIELD_SIZE - 1);
+						frameBytes.length - (Frame.TYPE_FIELD_SIZE + Frame.NUM_FIELD_SIZE));
 				return new InformationFrame(num, data);
 			// TODO Implement other types !
+			case ('C') :
+				return new ConnectionFrame(frameBytes[Frame.TYPE_FIELD_SIZE]);
+			case ('A') :
+				return new AckFrame(frameBytes[Frame.TYPE_FIELD_SIZE]);
+			case ('R') :
+				return new RejFrame(frameBytes[Frame.TYPE_FIELD_SIZE]);
+			case ('F') :
+				return new EndConnectionFrame();
+			case ('P') :
+				return new PFrame();
 			default : 
 				throw new MalformedFrameException();
 		}
