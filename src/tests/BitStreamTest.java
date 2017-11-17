@@ -1,31 +1,31 @@
+package tests;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import org.junit.BeforeClass;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import utils.BitInputStream;
 import utils.BitOutputStream;
 
-class BitStreamTest {
+public class BitStreamTest {
 
-	// Probaly overkill, this makes for very exhaustive testing, but it is still fast (<30ms)
+	// Probably overkill, this makes for very exhaustive testing, but it is still fast (<30ms)
 	private static final int BYTE_ARRAY_SIZE = 2^Byte.SIZE;
 	private static byte[] TEST_BYTES = new byte[BYTE_ARRAY_SIZE];
 	
 	@BeforeClass
-	void byteArraySetup() {
+	public static void byteArraySetup() {
 		TEST_BYTES = new byte[BYTE_ARRAY_SIZE];
 		for (int i=0; i<BYTE_ARRAY_SIZE;i++)
 			TEST_BYTES[i] = (byte) i;
 	}
 	
 	@Test
-	void BitInputStreamTest() throws IOException {
+	public void BitInputStreamTest() throws IOException {
 		BitInputStream istream = new BitInputStream(new ByteArrayInputStream(TEST_BYTES));
 
 		for (int i=0; i < TEST_BYTES.length; i++) {
@@ -37,7 +37,7 @@ class BitStreamTest {
 	}
 	
 	@Test
-	void BitOutputStreamTest() throws IOException {
+	public void BitOutputStreamTest() throws IOException {
 		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 		BitOutputStream ostream = new BitOutputStream(byteArrayOutputStream);
 		
