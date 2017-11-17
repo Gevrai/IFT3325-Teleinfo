@@ -11,10 +11,10 @@ public class Frame {
 	public static final int MAX_FRAME_SIZE = 1500;
 
     // Tailles des différents champs en nombre de bytes
-    private static final int FLAG_FIELD_SIZE = 1;
-    private static final int TYPE_FIELD_SIZE = 1;
-    private static final int NUM_FIELD_SIZE = 1;
-    private static final int CRC_FIELD_SIZE = 2;
+    public static final int FLAG_FIELD_SIZE = 1;
+    public static final int TYPE_FIELD_SIZE = 1;
+    public static final int NUM_FIELD_SIZE = 1;
+    public static final int CRC_FIELD_SIZE = 2;
 
     // | 1 Byte | 1 Byte | 1 Byte |    X Byte(s)   | 2 Bytes | 1 Byte |
     // |--------|--------|--------|----------------|---------|--------|

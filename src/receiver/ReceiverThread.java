@@ -33,12 +33,9 @@ public class ReceiverThread extends Thread {
 		
 		// Beginning of connection, MUST be a C Frame
 		nbBytesRead = istream.read(buf);
-		istream.re
-
-		
 		
 		System.out.println("Sending to client on socket " + this.clientSocket);
-		os.write(("TEST Writing to socket" + clientSocket + "\n").getBytes());
+		ostream.write(("TEST Writing to socket" + clientSocket + "\n").getBytes());
 		clientSocket.close();
 	}
 }

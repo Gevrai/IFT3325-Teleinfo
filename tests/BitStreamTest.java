@@ -30,7 +30,7 @@ class BitStreamTest {
 
 		for (int i=0; i < TEST_BYTES.length; i++) {
 			for (int j=0; j<Byte.SIZE;j++) {
-				byte current = (TEST_BYTES[i] & (0b10000000 >> j)) == 0? (byte)0:(byte)1;
+				byte current = (TEST_BYTES[i] & (0b10000000 >>> j)) == 0? (byte)0:(byte)1;
 				assertEquals(current, (int) istream.readBit());
 			}
 		}
@@ -44,7 +44,7 @@ class BitStreamTest {
 		// Write the bytes to the output stream
 		for (int i=0; i < TEST_BYTES.length; i++) {
 			for (int j=0; j<Byte.SIZE;j++) {
-				ostream.writeBit((byte) (TEST_BYTES[i] & (0b10000000 >> j)));
+				ostream.writeBit((byte) (TEST_BYTES[i] & (0b10000000 >>> j)));
 			}
 		}
 		

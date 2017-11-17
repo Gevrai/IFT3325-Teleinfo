@@ -2,7 +2,12 @@ package sender;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
+
+import frames.ConnectionFrame;
+import frames.Frame;
 
 public class Sender {
 
@@ -22,8 +27,14 @@ public class Sender {
 	// Just testing.....
 	public void sendFile(File file) throws IOException {
 		Socket socket = new Socket(this.machineName, this.portNumber);
-		
+		OutputStream ostream = socket.getOutputStream();
+		InputStream istream = socket.getInputStream();
 		// Demande de connexion
+		Frame f = new ConnectionFrame(ConnectionFrame.GO_BACK_N);
+		ostream.write(f.getBytes());
+		
+		// Reception de l'accuse de reception
+
 	}
 
 	public static void main(String[] args) {
