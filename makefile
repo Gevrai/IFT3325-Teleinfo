@@ -18,7 +18,7 @@ JAVA_FILES := \
 JAVAC=javac -d $(BUILD_DIR)
 
 ## all					-> Base rule : Compiles from scratch, apply whole test suite, and run the program
-all: clean build test run
+all: clean build test
 
 ## help					-> Shows this help.
 help:

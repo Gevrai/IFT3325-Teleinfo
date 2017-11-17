@@ -1,10 +1,5 @@
 package frames;
 
-import java.io.File;
-import java.util.ArrayList;
-
-import utils.FileBufferedReader;
-
 public class Frame {
 	
 	// Taille maximal d'une frame pour la transmission, en bytes
