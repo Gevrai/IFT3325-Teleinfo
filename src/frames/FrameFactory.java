@@ -40,8 +40,11 @@ public class FrameFactory {
 		
 		// Check CRC
 		byte[] remainder = BinaryDivision.getRemainder(framesBytes, Frame.GX16);
+		if (remainder == null)
+			return false;
 		for (byte b : remainder)
-			if (b != 0) return false;
+			if (b != 0) 
+				return false;
 
 		// TODO is there any other verifications to do ?
 		return true;

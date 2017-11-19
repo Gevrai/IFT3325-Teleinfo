@@ -17,7 +17,7 @@ public class Registers {
 		// Shift one bit to left, and get next byte's MSD as LSD
 		for (int i=0 ; i<registers.length-1 ; i++) {
 			registers[i] <<= 1; 
-			registers[i] |= registers[i+1] >> 7;
+			registers[i] |= registers[i+1] >>> 7;
 		}
 		// Last one has no next byte
 		registers[registers.length-1] <<= 1;
@@ -38,14 +38,14 @@ public class Registers {
 	
 	// Get the value of the bit at register i
 	public int get(int i) { 
-		return (registers[i/8] & (0b10000000 >> (i%8))) == 0 ? 0 : 1; 
+		return (registers[i/8] & (0b10000000 >>> (i%8))) == 0 ? 0 : 1; 
 	}
 	
 	// Set the value of the bit at register i
 	public void set(int i, int binValue) { 
 		if (binValue != 0) {
 			assert binValue == 1;
-			registers[i/8] |= (0b10000000 >> (i%8)); 
+			registers[i/8] |= (0b10000000 >>> (i%8)); 
 		}
 	}
 
@@ -61,4 +61,12 @@ public class Registers {
 	
 	public byte[] getBytes() { 
 		return registers; }
+	
+	public void print() {
+		String s = "";
+		for (int i=0; i<registers.length*8 ; i++) {
+			s += get(i) == 0 ? '0' : '1' ;
+		}
+		System.out.println(s);
+	}
 }

@@ -10,6 +10,7 @@ import java.io.IOException;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import utils.BinaryDivision;
 import utils.BitInputStream;
 import utils.BitOutputStream;
 import utils.Registers;
@@ -78,6 +79,8 @@ public class BitUtilsTest {
 		assertEquals(1, r1.get(3));
 		assertEquals(0, r1.get(1));
 
+		//assertEquals(new byte[] {0b00010000, (byte) 0b10000000}, r1.getBytes() );
+
 		r2.set(4, 1);
 		r2.set(9, 1);
 		r2.set(1, 1);
@@ -85,5 +88,17 @@ public class BitUtilsTest {
 		assertTrue(r1.equals(r2));
 		r2.shiftleft();
 		assertFalse(r1.equals(r2));
+	}
+	
+	@Test
+	public void BinaryDivisionTest() {
+		
+		// Exercice 7.2 from first homework
+		byte[] dividend = new byte[]{ (byte) 0b10000000, 0b00000000, 0b00000000, 0b00000000 };
+		byte[] divisor = new byte[]{0b1, 0b00010000, 0b00100001};
+		byte[] remainder = {0b00011011, (byte) 0b10011000};
+		byte[] result = BinaryDivision.getRemainder(dividend, divisor);
+		//assertEquals(remainder, result);
+		
 	}
 }

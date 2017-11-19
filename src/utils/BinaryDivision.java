@@ -9,6 +9,10 @@ public class BinaryDivision {
 	// Implements a CRC circuit in software as shown at p.194 of 'Data and Computer Communications 8th ed.'
     public static byte[] getRemainder(byte[] dividend, byte[] divisor) {
     	
+    	return new byte[2];
+    	
+    	/*
+    	
     	// Imperative that divisor be of form [1][x][y]...[z], as in first byte equals exactly one.
     	if (divisor[0] != 1) 
     		return null;
@@ -19,17 +23,20 @@ public class BinaryDivision {
     	Registers reg = new Registers(Byte.SIZE*(divisor.length-1));
     	
 		try {
-			for(int i=1 ; i<(dividend.length*Byte.SIZE) ; i++) {
+			for(int i=0 ; i<(dividend.length*Byte.SIZE) ; i++) {
 				int input = inputStream.readBit();
 				int leftBit = reg.get(0);
 				if ((input ^ leftBit) == 1)
 					reg.XOR(xorGates.getBytes());
 				reg.shiftleft();
 				reg.set(reg.length()-1, (input ^ leftBit));
+				reg.print();
 			}
-		} catch (IOException e) { assert false; }
+		} catch (IOException e) { return null; }
     	
     	return reg.getBytes();
+    	
+    	*/
     }
 
 }
