@@ -1,5 +1,7 @@
 package tests;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -10,8 +12,9 @@ import org.junit.Test;
 
 import utils.BitInputStream;
 import utils.BitOutputStream;
+import utils.Registers;
 
-public class BitStreamTest {
+public class BitUtilsTest {
 
 	// Probably overkill, this makes for very exhaustive testing, but it is still fast (<30ms)
 	private static final int BYTE_ARRAY_SIZE = 2^Byte.SIZE;
@@ -56,5 +59,31 @@ public class BitStreamTest {
 		for (int i=0; i < TEST_BYTES.length; i++) {
 			assertEquals(bytesResult[i], TEST_BYTES[i]);
 		}
+	}
+	
+	@Test
+	public void RegistersTest() {
+		
+		Registers r1, r2;
+		
+		r1 = new Registers(16);
+		r2 = new Registers(16);
+		
+		assertEquals(16, r1.length());
+		
+		r1.set(3, 1);
+		r1.set(8, 1);
+		r1.set(0, 1);
+		
+		assertEquals(1, r1.get(3));
+		assertEquals(0, r1.get(1));
+
+		r2.set(4, 1);
+		r2.set(9, 1);
+		r2.set(1, 1);
+		r2.shiftleft();
+		assertTrue(r1.equals(r2));
+		r2.shiftleft();
+		assertFalse(r1.equals(r2));
 	}
 }
