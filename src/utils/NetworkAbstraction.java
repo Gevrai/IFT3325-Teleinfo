@@ -25,7 +25,7 @@ public class NetworkAbstraction {
 	 */
 	public static void sendFrame(Frame frame, OutputStream outputStream) throws IOException {
 		BitOutputStream ostream = new BitOutputStream(outputStream);
-		byte[] frameBytes = frame.getBytes();
+		byte[] frameBytes = frame.getBytesWithCRC();
 		
 		// Start flag
 		outputStream.write(flag);
@@ -164,7 +164,7 @@ public class NetworkAbstraction {
 		
 		sendFrame(f, ostream);
 		
-		byte[] original = f.getBytes();
+		byte[] original = f.getBytesWithCRC();
 		byte[] result = ostream.toByteArray();
 		String originalStr = "        ";
 		String resultStr = "";

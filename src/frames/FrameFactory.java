@@ -2,6 +2,8 @@ package frames;
 
 import java.util.Arrays;
 
+import utils.BinaryDivision;
+
 public class FrameFactory {
 	
 	public static Frame fromBytes(byte[] frameBytes) throws MalformedFrameException {
@@ -18,7 +20,6 @@ public class FrameFactory {
 						Frame.TYPE_FIELD_SIZE + Frame.NUM_FIELD_SIZE, 
 						frameBytes.length - (Frame.TYPE_FIELD_SIZE + Frame.NUM_FIELD_SIZE));
 				return new InformationFrame(num, data);
-			// TODO Implement other types !
 			case ('C') :
 				return new ConnectionFrame(frameBytes[Frame.TYPE_FIELD_SIZE]);
 			case ('A') :
@@ -32,12 +33,17 @@ public class FrameFactory {
 			default : 
 				throw new MalformedFrameException();
 		}
-		
 	}
 	
 	// Checks if form is valid as well as CRC
 	public static boolean isValidFrame(byte[] framesBytes) {
-		// TODO implement this !
+		
+		// Check CRC
+		byte[] remainder = BinaryDivision.getRemainder(framesBytes, Frame.GX16);
+		for (byte b : remainder)
+			if (b != 0) return false;
+
+		// TODO is there any other verifications to do ?
 		return true;
 	}
 }

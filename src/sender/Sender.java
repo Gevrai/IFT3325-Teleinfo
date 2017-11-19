@@ -6,9 +6,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
-import frames.ConnectionFrame;
-import frames.Frame;
-
 public class Sender {
 
 	private String 	machineName;
@@ -29,11 +26,6 @@ public class Sender {
 		Socket socket = new Socket(this.machineName, this.portNumber);
 		OutputStream ostream = socket.getOutputStream();
 		InputStream istream = socket.getInputStream();
-		// Demande de connexion
-		Frame f = new ConnectionFrame(ConnectionFrame.GO_BACK_N);
-		ostream.write(f.getBytes());
-		
-		// Reception de l'accuse de reception
 
 	}
 

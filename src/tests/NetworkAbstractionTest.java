@@ -33,7 +33,7 @@ public class NetworkAbstractionTest {
 		NetworkAbstraction.sendFrame(frameSent, senderSocket.getOutputStream());
 		Frame frameReceived = NetworkAbstraction.receiveFrame(receiverSocket.getInputStream());
 		
-		assertArrayEquals(frameSent.getBytes(), frameReceived.getBytes());
+		assertArrayEquals(frameSent.getBytesWithCRC(), frameReceived.getBytesWithCRC());
 	}
 	
 	@Test
@@ -73,7 +73,7 @@ public class NetworkAbstractionTest {
 		framesReceived.add(NetworkAbstraction.receiveFrame(receiverSocket.getInputStream()));
 		
 		for(int i=0 ; i <framesSent.size() ; i++) {
-			assertArrayEquals(framesSent.get(i).getBytes(), framesReceived.get(i).getBytes());
+			assertArrayEquals(framesSent.get(i).getBytesWithCRC(), framesReceived.get(i).getBytesWithCRC());
 		}
 	}
 	
