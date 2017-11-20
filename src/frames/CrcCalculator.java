@@ -32,7 +32,7 @@ public class CrcCalculator {
         // 6. Get remainder of division of bBinary by the polynomial generator
         // G_X; that rest is the CRC.
         
-        
+        // ***TODO:
         // 7. Convert bCRC to byte array; return the array.
                 byte[] a = {1,2};
                 return a;
