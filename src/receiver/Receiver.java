@@ -1,10 +1,11 @@
 package receiver;
-import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import utils.BitInputStream;
 
 public class Receiver {
 	
@@ -22,19 +23,29 @@ public class Receiver {
 			receiverThread.start();
 		}
 	}
+        
+        protected void receiveData(DataInputStream dataInput, byte[] b){ // Méthode naive.
+            try {
+                dataInput.read(b);
+            } catch (IOException ex) {
+                Logger.getLogger(Receiver.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
 
 	// Receiver <Numero_Port>
 	public static void main(String[] args) {
 
 		// Quick check that we have the right amount of args
+                
 		if (args.length != 1) {
 			System.out.println("Invalid arguments, should be of form : Receiver <Port_Number>");
 			return;
 		}
+                
 
 		// Creates and run a Receiver instance, verifying args syntax
 		try { 
-			int portNumber = Integer.parseUnsignedInt(args[0]); 
+			int portNumber = Integer.parseUnsignedInt(args[0]);
 			Receiver receiver = new Receiver(portNumber);
 			receiver.run();
 		} catch (NumberFormatException e) {
