@@ -9,5 +9,5 @@ public class ConnectionFrame extends Frame {
 	public ConnectionFrame(byte connectionType) {
 		super((byte) 'C', connectionType);
 	}
-
+        
 }
