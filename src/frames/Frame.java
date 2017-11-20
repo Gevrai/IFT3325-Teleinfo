@@ -59,4 +59,8 @@ public abstract class Frame {
     	return bs;
     }
     
+    // Getters
+    public byte getNum(){
+        return this.num;
+    }
 }
