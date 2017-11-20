@@ -47,4 +47,8 @@ public class ConversionUtils {
         }
         return new String(cBuffer);
     }
+    
+    public static byte[] charsToBytes(char[] cArray){
+        return (new String(cArray).getBytes());
+    }
 }
