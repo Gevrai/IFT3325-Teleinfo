@@ -8,12 +8,7 @@ MAIN-RECEIVER = receiver.Receiver
 MAIN-SENDER = sender.Sender
 TESTS = tests.BitStreamTest tests.NetworkAbstractionTest
 
-JAVA_FILES := \
-	./src/utils/*.java \
-	./src/frames/*.java \
-	./src/receiver/*.java \
-	./src/sender/*.java \
-	./src/tests/*.java
+JAVA_FILES := ./src/**/*.java
 
 JAVAC=javac -d $(BUILD_DIR)
 
