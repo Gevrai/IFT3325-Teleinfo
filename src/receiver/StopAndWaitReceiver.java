@@ -1,26 +1,16 @@
 package receiver;
 
-import frames.Frame;
-import frames.FrameFactory;
-import frames.MalformedFrameException;
-import java.io.DataInputStream;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import utils.NetworkAbstraction;
 
-/**
- *
- * @author Sebastien
- */
 public class StopAndWaitReceiver extends Receiver{
     public static final byte STOP_AND_WAIT = 2;
     
     public StopAndWaitReceiver(int portNumber) throws IOException {
         super(portNumber);
     }
-    /*
-    protected void receiveData(DataInputStream dataInput) throws IOException {
+
+    protected byte[] receiveData() throws IOException {
+
         Frame frame;
         try {
             NetworkAbstraction.receiveFrame(dataInput);
@@ -28,5 +18,13 @@ public class StopAndWaitReceiver extends Receiver{
             Logger.getLogger(StopAndWaitReceiver.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    */
+
+	public static void main(String[] args){
+		try {
+			StopAndWaitReceiver sawReceiver = new StopAndWaitReceiver(PORT_NUMBER);
+			sawReceiver.run();
+		} catch (IOException ex) {
+			Logger.getLogger(StopAndWaitServerTests.class.getName()).log(Level.SEVERE, null, ex);
+		}
+	}
 }

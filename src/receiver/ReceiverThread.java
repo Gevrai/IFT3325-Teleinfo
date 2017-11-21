@@ -1,9 +1,4 @@
 package receiver;
-import frames.AckFrame;
-import frames.ConversionUtils;
-import frames.Frame;
-import frames.FrameFactory;
-import frames.MalformedFrameException;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,7 +6,10 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import utils.NetworkAbstraction;
+
+import frames.Frame;
+import frames.MalformedFrameException;
+import network.NetworkAbstraction;
 
 public class ReceiverThread extends Thread {
 	
@@ -48,9 +46,6 @@ public class ReceiverThread extends Thread {
                 System.out.println("Sending to client on socket " + this.clientSocket);
                 
                 //ostream.write(("TEST Writing to socket" + clientSocket + "\n").getBytes());
-                
-                // ACK:
-                ostream.write(new AckFrame(f.getNum()).getBytesWithCRC());
                 
                 clientSocket.close();
             } catch (MalformedFrameException ex) {
