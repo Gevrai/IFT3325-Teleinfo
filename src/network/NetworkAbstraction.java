@@ -102,7 +102,28 @@ public class NetworkAbstraction {
 	 * @return A valid frame
 	 * @throws IOException
 	 */
-	public Frame receiveFrame() throws IOException, MalformedFrameException {
+	public Frame receiveFrame() throws IOException {
+		// Will block until we get a valid frame !
+		while (true) {
+			try {
+				byte[] receivedBytes = getNextUnstuffedBytesBetweenFlags();
+				// Check crc
+				byte[] crc = crcCalculator.getCRC(receivedBytes );
+				for (byte b : crc)
+					if (b != 0) // Drop frame
+						continue;
+				// Return valid frame
+				return FrameFactory.fromBytes(Arrays.copyOf(receivedBytes , receivedBytes .length-crc.length));
+			} 
+			// If there was a problem with the frame, drop it and continue
+			catch (MalformedFrameException e) {
+				continue;
+			}
+		}
+	}
+
+	// Get bytes from the socket, unflag and unstuffs it and return a byte array or a MalformedFrameException
+	private byte[] getNextUnstuffedBytesBetweenFlags() throws IOException, MalformedFrameException {
 		BitInputStream istream = new BitInputStream(this.inputStream);
 
 		ByteArrayOutputStream receivedBytesOStream = new ByteArrayOutputStream();
@@ -148,8 +169,7 @@ public class NetworkAbstraction {
 				// Drop next zero
 				if ((bit = istream.readBit()) == 0) {
 					nbOfOnes = 0;
-				} 
-				else /* (bit == 1) */ {
+				} else /* (bit == 1) */ {
 					// Found a flag, finish it and break!
 					if (istream.readBit() == 0) {
 						bitOStream.writeBit(bit);
@@ -174,20 +194,9 @@ public class NetworkAbstraction {
 		
 		receivedBytesOStream.flush();
 		byte[] receivedBytes = receivedBytesOStream.toByteArray();
-
 		// Make sure we got a frame ending with a flag and unflag it
 		if(receivedBytes [receivedBytes .length-1] != flag)
 			throw new MalformedFrameException();
-		receivedBytes  = Arrays.copyOf(receivedBytes , receivedBytes .length-1);
-		
-		// Check crc
-		byte[] crc = crcCalculator.getCRC(receivedBytes );
-		for (byte b : crc)
-			if (b != 0)
-				throw new MalformedFrameException();
-		
-		// Return valid frame
-		return FrameFactory.fromBytes(Arrays.copyOf(receivedBytes , receivedBytes .length-crc.length));
+		return Arrays.copyOf(receivedBytes , receivedBytes .length-1);
 	}
-
 }
