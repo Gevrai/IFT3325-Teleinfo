@@ -17,7 +17,7 @@ import frames.InformationFrame;
 import frames.MalformedFrameException;
 import frames.PFrame;
 import frames.RejFrame;
-import utils.NetworkAbstraction;
+import network.NetworkAbstraction;
 
 public class NetworkAbstractionTest {
 
@@ -33,7 +33,7 @@ public class NetworkAbstractionTest {
 		NetworkAbstraction.sendFrame(frameSent, senderSocket.getOutputStream());
 		Frame frameReceived = NetworkAbstraction.receiveFrame(receiverSocket.getInputStream());
 		
-		assertArrayEquals(frameSent.getBytesWithCRC(), frameReceived.getBytesWithCRC());
+		assertArrayEquals(frameSent.getBytes(), frameReceived.getBytes());
 	}
 	
 	@Test
@@ -73,7 +73,7 @@ public class NetworkAbstractionTest {
 		framesReceived.add(NetworkAbstraction.receiveFrame(receiverSocket.getInputStream()));
 		
 		for(int i=0 ; i <framesSent.size() ; i++) {
-			assertArrayEquals(framesSent.get(i).getBytesWithCRC(), framesReceived.get(i).getBytesWithCRC());
+			assertArrayEquals(framesSent.get(i).getBytes(), framesReceived.get(i).getBytes());
 		}
 	}
 	

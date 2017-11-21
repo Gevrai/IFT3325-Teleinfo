@@ -1,4 +1,4 @@
-package utils;
+package network;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -8,16 +8,31 @@ import java.util.Arrays;
 
 import frames.Frame;
 import frames.FrameFactory;
-import frames.InformationFrame;
 import frames.MalformedFrameException;
+import utils.BitInputStream;
+import utils.BitOutputStream;
 
+/** This class abstracts all of the underlying logic of sending a single frame through and
+ *  OutputStream or receiving one from an InputStream.
+ *  
+ *  Takes care of :
+ *  - CRC calculations and verifications
+ *  - Bit stuffing and unstuffing
+ *  - Frame flagging and unflagging
+ * 
+ */
 public class NetworkAbstraction {
 
+    // Beginning and end flag for frames
     public static final byte flag = (byte) 0b01111110;
+
+    // Binary series corresponding to x^16 + x^12 + x^5 + 1: 10001000000100001
+    public static final byte[] GX16 = new byte[] {0b1, 0b00010000, 0b00100001};
+    public static final CRCCalculator crcCalculator = new CRCCalculator(GX16);
     
-	/** Does everything that should be needed for sending any frame to a socket
+	/** Does everything that should be needed for sending any frame to an outputStream
 	 * 
-	 * Takes care of bit stuffing and flagging
+	 * Takes care of CRC creation, bitstuffing and flagging.
 	 * 
 	 * @param frame Frame to send
 	 * @param outputStream Where to send the frame
@@ -25,16 +40,21 @@ public class NetworkAbstraction {
 	 */
 	public static void sendFrame(Frame frame, OutputStream outputStream) throws IOException {
 		BitOutputStream ostream = new BitOutputStream(outputStream);
-		byte[] frameBytes = frame.getBytesWithCRC();
 		
-		// Start flag
+		// Adding CRC to the received frame for receiver verification
+		byte[] frameBytes = frame.getBytes();
+		byte[] crcBytes = crcCalculator.getCRC(frameBytes);
+		byte[] allBytes = Arrays.copyOfRange(frameBytes, 0, frameBytes.length + crcBytes.length);
+		System.arraycopy(crcBytes, 0, allBytes, frameBytes.length, crcBytes.length);
+		
+		// Sending start flag
 		outputStream.write(flag);
 
 		// Bitstuffing
 		int nbOfOnes = 0;
 		byte outbit = 0; 
 		
-		for (byte inbyte : frameBytes) {
+		for (byte inbyte : allBytes) {
 			for (int inpos = 0; inpos < Byte.SIZE ; inpos ++) {
 				// Next bit
 				outbit = ((0b10000000 >>> inpos) & inbyte) == 0 ? (byte) 0 : (byte) 1;
@@ -65,9 +85,9 @@ public class NetworkAbstraction {
 		ostream.flush();
 	}
 	
-	/** Receives the next VALID frame from the socket, this function will block until a valid frame is found
+	/** Receives the next VALID frame from the outputStream, this function will block until a valid frame is found
 	 * 
-	 * Takes care of bit unstuffing and unflagging
+	 * Takes care of CRC verification, bit unstuffing and unflagging.
 	 * 
 	 * @param inputStream Where we get the frame from
 	 * @return A valid frame
@@ -76,8 +96,8 @@ public class NetworkAbstraction {
 	public static Frame receiveFrame(InputStream inputStream) throws IOException, MalformedFrameException {
 		BitInputStream istream = new BitInputStream(inputStream);
 
-		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-		BitOutputStream ostream = new BitOutputStream(bytes);
+		ByteArrayOutputStream receivedBytesOStream = new ByteArrayOutputStream();
+		BitOutputStream bitOStream = new BitOutputStream(receivedBytesOStream);
 
 		int nbOfOnes = 0;
 		byte bit = 0;
@@ -98,7 +118,7 @@ public class NetworkAbstraction {
 			else 
 				nbOfOnes = 0;
 			
-			ostream.writeBit(bit);
+			bitOStream.writeBit(bit);
 
 			// If we have 5 ones and it is not the last bit, ignore next 0
 			if(nbOfOnes == 5 && i+1 != Byte.SIZE) {
@@ -123,8 +143,8 @@ public class NetworkAbstraction {
 				else /* (bit == 1) */ {
 					// Found a flag, finish it and break!
 					if (istream.readBit() == 0) {
-						ostream.writeBit(bit);
-						ostream.writeBit((byte) 0);
+						bitOStream.writeBit(bit);
+						bitOStream.writeBit((byte) 0);
 						break;
 					}
 					// Seven 1 in a row should never ever happen ! 
@@ -134,7 +154,7 @@ public class NetworkAbstraction {
 			
 			// Read bit
 			bit = istream.readBit();
-			ostream.writeBit(bit);
+			bitOStream.writeBit(bit);
 
 			// Count ones
 			if (bit == 0) 
@@ -143,44 +163,22 @@ public class NetworkAbstraction {
 				nbOfOnes++;
 		}
 		
-		// Readying up the array !
-		bytes.flush();
-		byte[] resultFlagged = bytes.toByteArray();
-		// Make sure we got a frame ending with a flag
-		if(resultFlagged[resultFlagged.length-1] != flag)
-			throw new MalformedFrameException();
-		
-		// Unflag it and make a new frame !
-		byte[] result = Arrays.copyOfRange(resultFlagged, 0, resultFlagged.length - 1);
-		return FrameFactory.fromBytes(result);
-	}
-	
-	// Only purpose is for manual testing, should be getting rid of it after we make some unit tests
-	public static void main(String args[]) throws IOException {
-		// 011110111111111100000000
-		byte[] testData = {(byte) 0b01111011, (byte) 0xFF, (byte) 0x00};
-		Frame f = new InformationFrame((byte) 0, testData);
-		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
-		
-		sendFrame(f, ostream);
-		
-		byte[] original = f.getBytesWithCRC();
-		byte[] result = ostream.toByteArray();
-		String originalStr = "        ";
-		String resultStr = "";
-		
-		for(int i=0; i<original.length;i++)
-			for(int j=0; j<Byte.SIZE;j++) {
-				originalStr += (original[i] & (0b10000000 >>> j)) == 0? '0':'1';
-			}
+		receivedBytesOStream.flush();
+		byte[] receivedBytes = receivedBytesOStream.toByteArray();
 
-		for(int i=0; i<result.length;i++)
-			for(int j=0; j<Byte.SIZE;j++) {
-				resultStr += (result[i] & (0b10000000 >>> j)) == 0? '0':'1';
-			}
+		// Make sure we got a frame ending with a flag and unflag it
+		if(receivedBytes [receivedBytes .length-1] != flag)
+			throw new MalformedFrameException();
+		receivedBytes  = Arrays.copyOf(receivedBytes , receivedBytes .length-1);
 		
-		System.out.println("Original : " + originalStr);
-		System.out.println("Result   : " + resultStr);
+		// Check crc
+		byte[] crc = crcCalculator.getCRC(receivedBytes );
+		for (byte b : crc)
+			if (b != 0)
+				throw new MalformedFrameException();
 		
+		// Return valid frame
+		return FrameFactory.fromBytes(Arrays.copyOf(receivedBytes , receivedBytes .length-crc.length));
 	}
+
 }

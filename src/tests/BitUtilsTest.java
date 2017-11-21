@@ -1,19 +1,18 @@
 package tests;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import utils.BinaryDivision;
+import network.CRCCalculator;
 import utils.BitInputStream;
 import utils.BitOutputStream;
-import utils.Registers;
 
 public class BitUtilsTest {
 
@@ -63,42 +62,24 @@ public class BitUtilsTest {
 	}
 	
 	@Test
-	public void RegistersTest() {
+	public void CRCCalulatorTest() {
 		
-		Registers r1, r2;
-		
-		r1 = new Registers(16);
-		r2 = new Registers(16);
-		
-		assertEquals(16, r1.length());
-		
-		r1.set(3, 1);
-		r1.set(8, 1);
-		r1.set(0, 1);
-		
-		assertEquals(1, r1.get(3));
-		assertEquals(0, r1.get(1));
-
-		//assertEquals(new byte[] {0b00010000, (byte) 0b10000000}, r1.getBytes() );
-
-		r2.set(4, 1);
-		r2.set(9, 1);
-		r2.set(1, 1);
-		r2.shiftleft();
-		assertTrue(r1.equals(r2));
-		r2.shiftleft();
-		assertFalse(r1.equals(r2));
-	}
-	
-	@Test
-	public void BinaryDivisionTest() {
-		
-		// Exercice 7.2 from first homework
-		byte[] dividend = new byte[]{ (byte) 0b10000000, 0b00000000, 0b00000000, 0b00000000 };
+		// Values taken from Exercice 7.2 of first homework
+		byte[] dividend = new byte[]{ (byte) 0b10000000, 0b00000000};
 		byte[] divisor = new byte[]{0b1, 0b00010000, 0b00100001};
 		byte[] remainder = {0b00011011, (byte) 0b10011000};
-		byte[] result = BinaryDivision.getRemainder(dividend, divisor);
-		//assertEquals(remainder, result);
+
+		// Verify crc calculation yields the good crc code from precalculated result
+		CRCCalculator crcCalculator = new CRCCalculator(divisor);
+		byte[] result = crcCalculator.getCRC(dividend);
+		assertTrue(Arrays.equals(remainder, result));
 		
+		// Check if doing the same calculation with the crc appended yields 0
+		byte[] withCRC = Arrays.copyOf(dividend, dividend.length + result.length);
+		System.arraycopy(result, 0, withCRC, dividend.length, result.length);
+		
+		result = crcCalculator.getCRC(withCRC);
+		for (byte b : result)
+			assertEquals(0,b);
 	}
 }
