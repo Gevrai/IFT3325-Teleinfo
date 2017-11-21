@@ -30,10 +30,18 @@ public class NetworkAbstractionTest {
 		byte data[] = {5,3,6,3,52,26,73,86,111,63,75};
 		Frame frameSent = new InformationFrame((byte) 0, data);
 		
-		NetworkAbstraction.sendFrame(frameSent, senderSocket.getOutputStream());
-		Frame frameReceived = NetworkAbstraction.receiveFrame(receiverSocket.getInputStream());
+		NetworkAbstraction client = new NetworkAbstraction(senderSocket);
+		client.sendFrame(frameSent);
+
+		NetworkAbstraction server = new NetworkAbstraction(receiverSocket);
+		Frame frameReceived = server.receiveFrame();
 		
 		assertArrayEquals(frameSent.getBytes(), frameReceived.getBytes());
+		
+		// Free ressources
+		serverSocket.close();
+		serverSocket.close();
+		receiverSocket.close();
 	}
 	
 	@Test
@@ -42,6 +50,9 @@ public class NetworkAbstractionTest {
 		Socket senderSocket = new Socket("localhost", serverSocket.getLocalPort());
 		Socket receiverSocket = serverSocket.accept();
 		
+		NetworkAbstraction sender = new NetworkAbstraction(senderSocket);
+		NetworkAbstraction receiver = new NetworkAbstraction(receiverSocket);
+
 		List<Frame> framesSent = new ArrayList<Frame>();
 		List<Frame> framesReceived = new ArrayList<Frame>();
 
@@ -55,26 +66,31 @@ public class NetworkAbstractionTest {
 		framesSent.add(new PFrame());
 		
 		// Interlacing for fun, but kind of a test ?
-		NetworkAbstraction.sendFrame(framesSent.get(0), senderSocket.getOutputStream());
-		NetworkAbstraction.sendFrame(framesSent.get(1), senderSocket.getOutputStream());
-		framesReceived.add(NetworkAbstraction.receiveFrame(receiverSocket.getInputStream()));
-		NetworkAbstraction.sendFrame(framesSent.get(2), senderSocket.getOutputStream());
-		NetworkAbstraction.sendFrame(framesSent.get(3), senderSocket.getOutputStream());
-		framesReceived.add(NetworkAbstraction.receiveFrame(receiverSocket.getInputStream()));
-		framesReceived.add(NetworkAbstraction.receiveFrame(receiverSocket.getInputStream()));
-		NetworkAbstraction.sendFrame(framesSent.get(4), senderSocket.getOutputStream());
-		NetworkAbstraction.sendFrame(framesSent.get(5), senderSocket.getOutputStream());
-		framesReceived.add(NetworkAbstraction.receiveFrame(receiverSocket.getInputStream()));
-		NetworkAbstraction.sendFrame(framesSent.get(6), senderSocket.getOutputStream());
-		framesReceived.add(NetworkAbstraction.receiveFrame(receiverSocket.getInputStream()));
-		framesReceived.add(NetworkAbstraction.receiveFrame(receiverSocket.getInputStream()));
-		NetworkAbstraction.sendFrame(framesSent.get(7), senderSocket.getOutputStream());
-		framesReceived.add(NetworkAbstraction.receiveFrame(receiverSocket.getInputStream()));
-		framesReceived.add(NetworkAbstraction.receiveFrame(receiverSocket.getInputStream()));
+		sender.sendFrame(framesSent.get(0));
+		sender.sendFrame(framesSent.get(1));
+		framesReceived.add(receiver.receiveFrame());
+		sender.sendFrame(framesSent.get(2));
+		sender.sendFrame(framesSent.get(3));
+		framesReceived.add(receiver.receiveFrame());
+		framesReceived.add(receiver.receiveFrame());
+		sender.sendFrame(framesSent.get(4));
+		sender.sendFrame(framesSent.get(5));
+		framesReceived.add(receiver.receiveFrame());
+		sender.sendFrame(framesSent.get(6));
+		framesReceived.add(receiver.receiveFrame());
+		framesReceived.add(receiver.receiveFrame());
+		sender.sendFrame(framesSent.get(7));
+		framesReceived.add(receiver.receiveFrame());
+		framesReceived.add(receiver.receiveFrame());
 		
 		for(int i=0 ; i <framesSent.size() ; i++) {
 			assertArrayEquals(framesSent.get(i).getBytes(), framesReceived.get(i).getBytes());
 		}
+
+		// Free ressources
+		serverSocket.close();
+		serverSocket.close();
+		receiverSocket.close();
 	}
 	
 }

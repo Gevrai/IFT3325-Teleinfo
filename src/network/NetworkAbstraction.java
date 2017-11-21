@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.Socket;
 import java.util.Arrays;
 
 import frames.Frame;
@@ -12,8 +13,8 @@ import frames.MalformedFrameException;
 import utils.BitInputStream;
 import utils.BitOutputStream;
 
-/** This class abstracts all of the underlying logic of sending a single frame through and
- *  OutputStream or receiving one from an InputStream.
+/** This class abstracts all of the underlying logic of sending and receiving single frames
+ *  in a socket.
  *  
  *  Takes care of :
  *  - CRC calculations and verifications
@@ -30,6 +31,14 @@ public class NetworkAbstraction {
     public static final byte[] GX16 = new byte[] {0b1, 0b00010000, 0b00100001};
     public static final CRCCalculator crcCalculator = new CRCCalculator(GX16);
     
+    OutputStream outputStream;
+    InputStream inputStream;
+    
+    public NetworkAbstraction(Socket socket) throws IOException {
+    	this.outputStream = socket.getOutputStream();
+    	this.inputStream = socket.getInputStream();
+    }
+    
 	/** Does everything that should be needed for sending any frame to an outputStream
 	 * 
 	 * Takes care of CRC creation, bitstuffing and flagging.
@@ -38,8 +47,8 @@ public class NetworkAbstraction {
 	 * @param outputStream Where to send the frame
 	 * @throws IOException
 	 */
-	public static void sendFrame(Frame frame, OutputStream outputStream) throws IOException {
-		BitOutputStream ostream = new BitOutputStream(outputStream);
+	public void sendFrame(Frame frame) throws IOException {
+		BitOutputStream ostream = new BitOutputStream(this.outputStream);
 		
 		// Adding CRC to the received frame for receiver verification
 		byte[] frameBytes = frame.getBytes();
@@ -93,8 +102,8 @@ public class NetworkAbstraction {
 	 * @return A valid frame
 	 * @throws IOException
 	 */
-	public static Frame receiveFrame(InputStream inputStream) throws IOException, MalformedFrameException {
-		BitInputStream istream = new BitInputStream(inputStream);
+	public Frame receiveFrame() throws IOException, MalformedFrameException {
+		BitInputStream istream = new BitInputStream(this.inputStream);
 
 		ByteArrayOutputStream receivedBytesOStream = new ByteArrayOutputStream();
 		BitOutputStream bitOStream = new BitOutputStream(receivedBytesOStream);
@@ -103,12 +112,12 @@ public class NetworkAbstraction {
 		byte bit = 0;
 		
 		// Start flag, assumes that every frame's beginning is aligned with a byte
-		byte current = (byte) inputStream.read();
+		byte current = (byte) this.inputStream.read();
 		while (current != flag) 
-			current = (byte) inputStream.read();
+			current = (byte) this.inputStream.read();
 		// Make sure current is not a flag
 		while (current == flag) 
-			current = (byte) inputStream.read();
+			current = (byte) this.inputStream.read();
 		
 		// Still need to read the current byte... This is not very clean though
 		for (int i=0; i<Byte.SIZE; i++) {
