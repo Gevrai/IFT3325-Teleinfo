@@ -11,11 +11,11 @@ import org.junit.Test;
 
 import frames.AckFrame;
 import frames.ConnectionFrame;
-import frames.EndConnectionFrame;
+import frames.FinalFrame;
 import frames.Frame;
 import frames.InformationFrame;
 import frames.MalformedFrameException;
-import frames.PFrame;
+import frames.PollFrame;
 import frames.RejFrame;
 import network.NetworkAbstraction;
 
@@ -62,8 +62,8 @@ public class NetworkAbstractionTest {
 		framesSent.add(new InformationFrame((byte) 2, new byte[]{35,4,64,74,27,35,37,85,27,35,84,34,73}));
 		framesSent.add(new AckFrame((byte) 0));
 		framesSent.add(new RejFrame((byte) 1));
-		framesSent.add(new EndConnectionFrame());
-		framesSent.add(new PFrame());
+		framesSent.add(new FinalFrame());
+		framesSent.add(new PollFrame());
 		
 		// Interlacing for fun, but kind of a test ?
 		sender.sendFrame(framesSent.get(0));
