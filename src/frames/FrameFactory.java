@@ -6,6 +6,10 @@ public class FrameFactory {
 	
 	public static Frame fromBytes(byte[] frameBytes) throws MalformedFrameException {
 		
+		// Illegal frameBytes
+		if (frameBytes == null || frameBytes.length < 2)
+			throw new MalformedFrameException();
+		
 		// Instantiates the right type of frame
 		char type = (char) frameBytes[0];
 		switch (type) {
