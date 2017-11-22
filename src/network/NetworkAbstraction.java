@@ -3,7 +3,6 @@ package network;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Arrays;
 
@@ -14,30 +13,53 @@ import utils.BitInputStream;
 import utils.BitOutputStream;
 
 /** This class abstracts all of the underlying logic of sending and receiving single frames
- *  in a socket.
+ *  in a socket. It is possible to initialize this network with a communication error ratio.
  *
  *  Takes care of :
  *  - CRC calculations and verifications
  *  - Bit stuffing and unstuffing
  *  - Frame flagging and unflagging
+ *  - Introducing errors on communication
+ *  
+ *  The format of data sent and received over this network is as follow :
+ *  
+ *  | 1 Byte |    X Byte(s)   | 2 Bytes | 1 Byte |
+ *  |--------|----------------|---------|--------|
+ *  |  Flag  |     Frame      |   CRC   |  Flag  |
+ *  |--------|----------------|---------|--------|
  *
  */
 public class NetworkAbstraction {
 
-		// Beginning and end flag for frames
-		public static final byte flag = (byte) 0b01111110;
+	// Beginning and end flag for frames
+	public static final byte flag = (byte) 0b01111110;
 
-		// Binary series corresponding to x^16 + x^12 + x^5 + 1: 10001000000100001
-		public static final byte[] GX16 = new byte[] {0b1, 0b00010000, 0b00100001};
-		public static final CRCCalculator crcCalculator = new CRCCalculator(GX16);
+	// Binary series corresponding to x^16 + x^12 + x^5 + 1: 10001000000100001
+	public static final byte[] GX16 = new byte[] {0b1, 0b00010000, 0b00100001};
+	public static final CRCCalculator crcCalculator = new CRCCalculator(GX16);
+	
+	// Communication error ratio
+	private double errorRatio;
 
-		OutputStream outputStream;
-		InputStream inputStream;
+	// Socket on which the communication is done
+	private Socket socket;
 
-		public NetworkAbstraction(Socket socket) throws IOException {
-			this.outputStream = socket.getOutputStream();
-			this.inputStream = socket.getInputStream();
-		}
+	// Perfect communication network
+	public NetworkAbstraction(Socket socket) throws IOException {
+		this.socket = socket;
+		this.errorRatio = 0;
+	}
+
+	// Potentially imperfect communication network
+	public NetworkAbstraction(Socket socket, double errorRatio) throws IOException {
+		this.socket = socket;
+		this.errorRatio = errorRatio;
+	}
+	
+	// Simply closes the socket
+	public void close() throws IOException {
+		this.socket.close();
+	}
 
 	/** Does everything that should be needed for sending any frame to an outputStream
 	 *
@@ -48,7 +70,8 @@ public class NetworkAbstraction {
 	 * @throws IOException
 	 */
 	public void sendFrame(Frame frame) throws IOException {
-		BitOutputStream ostream = new BitOutputStream(this.outputStream);
+		ByteArrayOutputStream byteOStream = new ByteArrayOutputStream();
+		BitOutputStream ostream = new BitOutputStream(byteOStream);
 
 		// Adding CRC to the received frame for receiver verification
 		byte[] frameBytes = frame.getBytes();
@@ -57,7 +80,7 @@ public class NetworkAbstraction {
 		System.arraycopy(crcBytes, 0, allBytes, frameBytes.length, crcBytes.length);
 
 		// Sending start flag
-		outputStream.write(flag);
+		this.socket.getOutputStream().write(flag);
 
 		// Bitstuffing
 		int nbOfOnes = 0;
@@ -92,6 +115,12 @@ public class NetworkAbstraction {
 
 		// Flush for safety !
 		ostream.flush();
+		
+		// Maybe introduce errors on this communication
+		byte[] bytesToSend = introduceCommunicationErrors(byteOStream.toByteArray());
+		
+		// Send the data
+		this.socket.getOutputStream().write(bytesToSend);
 	}
 
 	/** Receives the next VALID frame from the outputStream, this function will block until a valid frame is found
@@ -124,21 +153,22 @@ public class NetworkAbstraction {
 
 	// Get bytes from the socket, unflag and unstuffs it and return a byte array or a MalformedFrameException
 	private byte[] getNextUnstuffedBytesBetweenFlags() throws IOException, MalformedFrameException {
-		BitInputStream istream = new BitInputStream(this.inputStream);
+		InputStream istream = this.socket.getInputStream();
+		BitInputStream bitInputStream = new BitInputStream(istream);
 
 		ByteArrayOutputStream receivedBytesOStream = new ByteArrayOutputStream();
-		BitOutputStream bitOStream = new BitOutputStream(receivedBytesOStream);
+		BitOutputStream bitOuputStream = new BitOutputStream(receivedBytesOStream);
 
 		int nbOfOnes = 0;
 		byte bit = 0;
 
 		// Start flag, assumes that every frame's beginning is aligned with a byte
-		byte current = (byte) this.inputStream.read();
+		byte current = (byte) istream.read();
 		while (current != flag)
-			current = (byte) this.inputStream.read();
+			current = (byte) istream.read();
 		// Make sure current is not a flag
 		while (current == flag)
-			current = (byte) this.inputStream.read();
+			current = (byte) istream.read();
 
 		// Still need to read the current byte... This is not very clean though
 		for (int i=0; i<Byte.SIZE; i++) {
@@ -148,7 +178,7 @@ public class NetworkAbstraction {
 			else
 				nbOfOnes = 0;
 
-			bitOStream.writeBit(bit);
+			bitOuputStream.writeBit(bit);
 
 			// If we have 5 ones and it is not the last bit, ignore next 0
 			if(nbOfOnes == 5 && i+1 != Byte.SIZE) {
@@ -167,13 +197,13 @@ public class NetworkAbstraction {
 			// Suites of five 1 are either a flag or bit stuffing happened
 			if (nbOfOnes == 5) {
 				// Drop next zero
-				if ((bit = istream.readBit()) == 0) {
+				if ((bit = bitInputStream.readBit()) == 0) {
 					nbOfOnes = 0;
 				} else /* (bit == 1) */ {
 					// Found a flag, finish it and break!
-					if (istream.readBit() == 0) {
-						bitOStream.writeBit(bit);
-						bitOStream.writeBit((byte) 0);
+					if (bitInputStream.readBit() == 0) {
+						bitOuputStream.writeBit(bit);
+						bitOuputStream.writeBit((byte) 0);
 						break;
 					}
 					// Seven 1 in a row should never ever happen !
@@ -182,8 +212,8 @@ public class NetworkAbstraction {
 			}
 
 			// Read bit
-			bit = istream.readBit();
-			bitOStream.writeBit(bit);
+			bit = bitInputStream.readBit();
+			bitOuputStream.writeBit(bit);
 
 			// Count ones
 			if (bit == 0)
@@ -193,10 +223,21 @@ public class NetworkAbstraction {
 		}
 
 		receivedBytesOStream.flush();
-		byte[] receivedBytes = receivedBytesOStream.toByteArray();
+		
+		// Received bytes might be erroneous
+		byte[] receivedBytes = introduceCommunicationErrors(receivedBytesOStream.toByteArray());
 		// Make sure we got a frame ending with a flag and unflag it
 		if(receivedBytes [receivedBytes .length-1] != flag)
 			throw new MalformedFrameException();
 		return Arrays.copyOf(receivedBytes , receivedBytes .length-1);
+	}
+	
+	// Introduces fake error on communication based on error ratio
+	private byte[] introduceCommunicationErrors(byte[] inputBytes) {
+		if(Math.random() < this.errorRatio) {
+			byte badByte = (byte) (Math.random()*Byte.SIZE);
+			inputBytes[(int) (Math.random()*inputBytes.length)] = badByte;
+		}
+		return inputBytes;
 	}
 }
