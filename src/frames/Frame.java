@@ -1,5 +1,14 @@
 package frames;
 
+/** Base frame doing all the legwork needed of a general frame.
+ *  The data field might be empty.
+ * 
+ *   | 1 Byte | 1 Byte |    X Byte(s)   |
+ *   |--------|--------|----------------|
+ *   |  Type  |  Num   |      Data      |
+ *   |--------|--------|----------------|
+ *
+ */
 public abstract class Frame {
     
     // Taille maximale d'une frame pour la transmission, en bytes.
@@ -9,11 +18,8 @@ public abstract class Frame {
     public static final int FLAG_FIELD_SIZE = 1;
     public static final int TYPE_FIELD_SIZE = 1;
     public static final int NUM_FIELD_SIZE = 1;
-    
-    // | 1 Byte | 1 Byte |    X Byte(s)   | 2 Bytes |
-    // |--------|--------|----------------|---------|
-    // |  Type  |  Num   |      Data      |   CRC   |
-    // |--------|--------|----------------|---------|
+    public static final int CRC_FIELD_SIZE = 2;
+    public static final int MAX_DATA_SIZE = MAX_FRAME_SIZE - (TYPE_FIELD_SIZE + NUM_FIELD_SIZE + CRC_FIELD_SIZE);
     
     private byte type;
     private byte num;

@@ -20,9 +20,9 @@ public class FrameFactory {
 			case ('R') :
 				return new RejFrame(frameBytes[Frame.TYPE_FIELD_SIZE]);
 			case ('F') :
-				return new EndConnectionFrame();
+				return new FinalFrame();
 			case ('P') :
-				return new PFrame();
+				return new PollFrame();
 			default : 
 				throw new MalformedFrameException();
 		}
