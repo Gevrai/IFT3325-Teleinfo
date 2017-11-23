@@ -1,6 +1,6 @@
 package sessions;
 
-import frames.SenderTimer;
+import sender.SenderTimer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
@@ -10,6 +10,7 @@ import frames.AckFrame;
 import frames.ConnectionFrame;
 import frames.Frame;
 import java.util.Timer;
+import network.FrameSenderTask;
 import network.NetworkAbstraction;
 
 public abstract class Session {
@@ -62,7 +63,7 @@ public abstract class Session {
             ConnectionFrame cFrame = new ConnectionFrame(connectionType);
             
             Timer timer = new Timer();
-            timer.schedule(new SenderTimer(connectionType, cFrame, network), 0, TIMER_UPPER_BOUND);
+            timer.schedule(new SenderTimer(network, cFrame), 0, TIMER_UPPER_BOUND);
             
             Frame frame = network.receiveFrame();
             if (frame instanceof AckFrame)
