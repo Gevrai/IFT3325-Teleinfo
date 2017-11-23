@@ -1,6 +1,5 @@
 package sessions;
 
-import sender.SenderTimer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
@@ -10,12 +9,16 @@ import frames.AckFrame;
 import frames.ConnectionFrame;
 import frames.Frame;
 import java.util.Timer;
-import network.FrameSenderTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import network.NetworkAbstraction;
+import sender.SenderRunnable;
 
 public abstract class Session {
 	
-    private final int TIMER_UPPER_BOUND = 3000; // milliseconds
+    private final int TIMER_UPPER_BOUND = 3; // seconds
     
 	private Socket socket;
 	protected NetworkAbstraction network;
@@ -62,15 +65,36 @@ public abstract class Session {
             
             ConnectionFrame cFrame = new ConnectionFrame(connectionType);
             
-            Timer timer = new Timer();
-            timer.schedule(new SenderTimer(network, cFrame), 0, TIMER_UPPER_BOUND);
+            ScheduledExecutorService scheduler =
+                    Executors.newSingleThreadScheduledExecutor();
             
+            Runnable task = new SenderRunnable(); // The SenderRunnable class is the task to periodically execute.
+            int initialDelay = 0;
+            int delay = TIMER_UPPER_BOUND;
+            
+                while(scheduler.scheduleWithFixedDelay(task, initialDelay, delay,
+                        TimeUnit.SECONDS) != null);
+                                            // The scheduler returns a null
+                                            // value upon completion, so 
+                                            // once we get a null value
+                                            // here, it means the runnable
+                                            // (the task) didn't catch an IO
+                                            // exception and the connection
+                                            // frame was indeed sent -- we can
+                                            // then proceed.
+                                            
+            
+            /*
+            Timer timer = new Timer();
+            timer.schedule(new SenderTimer(connectionType, cFrame, network), 0, TIMER_UPPER_BOUND);
+            */
+
             Frame frame = network.receiveFrame();
             if (frame instanceof AckFrame)
                     return true;
             return false;
 	}
-
+        
 	public abstract boolean send(InputStream istream) throws IOException ;
 
 	// Since the protocol doesn't have a proper Disconnect Frame, we abruptly disconnect
