@@ -72,16 +72,15 @@ public abstract class Session {
             int initialDelay = 0;
             int delay = TIMER_UPPER_BOUND;
             
-                while(scheduler.scheduleWithFixedDelay(task, initialDelay, delay,
-                        TimeUnit.SECONDS) != null);
-                                            // The scheduler returns a null
-                                            // value upon completion, so 
-                                            // once we get a null value
-                                            // here, it means the runnable
-                                            // (the task) didn't catch an IO
-                                            // exception and the connection
-                                            // frame was indeed sent -- we can
-                                            // then proceed.
+            while(scheduler.schedule(task, delay, TimeUnit.SECONDS) != null);
+                                        // The scheduler returns a null
+                                        // value upon completion, so 
+                                        // once we get a null value
+                                        // here, it means the runnable
+                                        // (the task) didn't catch an IO
+                                        // exception and the connection
+                                        // frame was indeed sent -- we can
+                                        // then proceed.
                                             
             
             /*
