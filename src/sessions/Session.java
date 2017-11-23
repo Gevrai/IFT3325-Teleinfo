@@ -1,5 +1,6 @@
 package sessions;
 
+import frames.SenderTimer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
@@ -7,12 +8,14 @@ import java.net.UnknownHostException;
 
 import frames.AckFrame;
 import frames.ConnectionFrame;
-import frames.FinalFrame;
 import frames.Frame;
+import java.util.Timer;
 import network.NetworkAbstraction;
 
 public abstract class Session {
 	
+    private final int TIMER_UPPER_BOUND = 3000; // milliseconds
+    
 	private Socket socket;
 	protected NetworkAbstraction network;
 	
@@ -55,21 +58,24 @@ public abstract class Session {
 	}
 
 	private boolean attemptConnection(byte connectionType) throws IOException {
-		// TODO Set a timer !
-		ConnectionFrame cframe = new ConnectionFrame(connectionType);
-		network.sendFrame(cframe);
-		Frame frame = network.receiveFrame();
-		if (frame instanceof AckFrame)
-			return true;
-		return false;
+            
+            ConnectionFrame cFrame = new ConnectionFrame(connectionType);
+            
+            Timer timer = new Timer();
+            timer.schedule(new SenderTimer(connectionType, cFrame, network), 0, TIMER_UPPER_BOUND);
+            
+            Frame frame = network.receiveFrame();
+            if (frame instanceof AckFrame)
+                    return true;
+            return false;
 	}
 
 	public abstract boolean send(InputStream istream) throws IOException ;
 
 	// Since the protocol doesn't have a proper Disconnect Frame, we abruptly disconnect
 	public boolean close() throws IOException {
-		socket.close();
-		return true;
+            socket.close();
+            return true;
 	}
-
+        
 }
