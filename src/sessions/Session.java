@@ -1,20 +1,25 @@
 package sessions;
 
+import frames.AckFrame;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import frames.AckFrame;
 import frames.ConnectionFrame;
 import frames.Frame;
-import java.util.Timer;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
+import java.lang.Exception;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import network.FrameSenderTask;
 import network.NetworkAbstraction;
-import sender.SenderRunnable;
+import sender.SenderCallable;
 
 public abstract class Session {
 	
@@ -28,7 +33,7 @@ public abstract class Session {
 		this.network = new NetworkAbstraction(socket);
 	}
 
-	public static Session connect(String machineName, String portNumber, String connectionType) {
+	public static Session connect(String machineName, String portNumber, String connectionType) throws InterruptedException, ExecutionException {
 		Session session = null;
 		try {
 			// Creates a session and verifies if it's a valid type
@@ -61,40 +66,37 @@ public abstract class Session {
 		return null;
 	}
 
-	private boolean attemptConnection(byte connectionType) throws IOException {
+	public boolean attemptConnection(byte connectionType) throws IOException, InterruptedException, ExecutionException {
             
-            ConnectionFrame cFrame = new ConnectionFrame(connectionType);
-            
-            ScheduledExecutorService scheduler =
-                    Executors.newSingleThreadScheduledExecutor();
-            
-            Runnable task = new SenderRunnable(); // The SenderRunnable class is the task to periodically execute.
-            int initialDelay = 0;
-            int delay = TIMER_UPPER_BOUND;
-            
-            while(scheduler.schedule(task, delay, TimeUnit.SECONDS) != null);
-                                        // The scheduler returns a null
-                                        // value upon completion, so 
-                                        // once we get a null value
-                                        // here, it means the runnable
-                                        // (the task) didn't catch an IO
-                                        // exception and the connection
-                                        // frame was indeed sent -- we can
-                                        // then proceed.
-                                            
-            
-            /*
-            Timer timer = new Timer();
-            timer.schedule(new SenderTimer(connectionType, cFrame, network), 0, TIMER_UPPER_BOUND);
-            */
+            try {
+                ConnectionFrame cFrame = new ConnectionFrame(connectionType);
 
-            Frame frame = network.receiveFrame();
-            if (frame instanceof AckFrame)
+                ExecutorService executor;
+                FutureTask fTask;
+                do{
+                    executor = Executors.newCachedThreadPool();
+                    fTask = new FutureTask(new FrameSenderTask(network, cFrame)); // The SenderCallable object is the task to periodically execute.
+                    executor.submit(fTask);
+
+                    // Wait 3 seconds max. for the thread to terminate (with or
+                    // without an error).
+                    executor.awaitTermination(TIMER_UPPER_BOUND, TimeUnit.SECONDS);
+                    System.out.println("Session says: \"End of the 'do while' loop in the 'attemptConnection' method.\"");
+                }while(fTask.get(TIMER_UPPER_BOUND, TimeUnit.SECONDS) != null); // Reminder: the task (here, 'FrameSenderTask')throws an IOException if the
+                                                                                // 'sent' is not completed and returns 'null' otherwise.
+                System.out.println("Session says: \"Exited 'do while'.\"");
+                
+                Frame frame = network.receiveFrame();
+                if (frame instanceof AckFrame){
                     return true;
+                }
+            } catch (TimeoutException ex) {
+                Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
+            }
             return false;
 	}
         
-	public abstract boolean send(InputStream istream) throws IOException ;
+	public abstract boolean send(InputStream istream) throws IOException;
 
 	// Since the protocol doesn't have a proper Disconnect Frame, we abruptly disconnect
 	public boolean close() throws IOException {
