@@ -22,16 +22,6 @@ public class StopAndWaitSessionTest {
     public static void main(String[] args) throws UnknownHostException, NumberFormatException, IOException, InterruptedException, ExecutionException{
         double receiverErrorRatio = 0.5;
         
-        InetAddress ip;
-        String hostname;
-        ip = InetAddress.getLocalHost();
-        hostname = ip.getHostName();
-        
-        ServerSocket ss = new ServerSocket(9090);
-        Socket soc = new Socket();
-        
-        Session saw = new StopAndWaitSession(hostname, 9090);
-        
         // Start a receiver in another thread
         Receiver receiver = new Receiver(0, receiverErrorRatio);
         Thread t = new Thread() {
@@ -44,7 +34,7 @@ public class StopAndWaitSessionTest {
         t.start();
         
         System.out.println("StopAndWaitSessionTest says: \"Gonna attempt a connection now.\"");
-        Session session = Session.connect("localhost", receiver.getLocalPort(), ConnectionFrame.STOP_AND_WAIT);
+        Session session = StopAndWaitSession.connect("localhost", receiver.getLocalPort(), ConnectionFrame.STOP_AND_WAIT);
         assertTrue(session != null);
         System.out.println("StopAndWaitSessionTest says: \"Gonna close the connection now.\"");
         session.close();
