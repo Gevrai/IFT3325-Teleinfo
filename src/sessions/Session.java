@@ -4,21 +4,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
-
-import frames.AckFrame;
-import frames.ConnectionFrame;
-import frames.Frame;
-import java.util.Timer;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+
+import frames.AckFrame;
+import frames.ConnectionFrame;
+import frames.Frame;
 import network.NetworkAbstraction;
-import sender.SenderRunnable;
+import utils.FrameReceptionTimeoutCallable;
+import utils.FrameReceptionTimeoutException;
 
 public abstract class Session {
 	
-    private final int TIMER_UPPER_BOUND = 3; // seconds
+	protected ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    protected final int TIMEOUT_TIME = 3000; // milliseconds
     
 	private Socket socket;
 	protected NetworkAbstraction network;
@@ -60,38 +61,40 @@ public abstract class Session {
 		}
 		return null;
 	}
+	
+	public ScheduledFuture<Void> setTimeout(Frame frame) {
+		return scheduler.schedule(new FrameReceptionTimeoutCallable(frame), TIMEOUT_TIME, TimeUnit.MILLISECONDS);
+	}
 
 	private boolean attemptConnection(byte connectionType) throws IOException {
-            
-            ConnectionFrame cFrame = new ConnectionFrame(connectionType);
-            
-            ScheduledExecutorService scheduler =
-                    Executors.newSingleThreadScheduledExecutor();
-            
-            Runnable task = new SenderRunnable(); // The SenderRunnable class is the task to periodically execute.
-            int initialDelay = 0;
-            int delay = TIMER_UPPER_BOUND;
-            
-            while(scheduler.schedule(task, delay, TimeUnit.SECONDS) != null);
-                                        // The scheduler returns a null
-                                        // value upon completion, so 
-                                        // once we get a null value
-                                        // here, it means the runnable
-                                        // (the task) didn't catch an IO
-                                        // exception and the connection
-                                        // frame was indeed sent -- we can
-                                        // then proceed.
-                                            
-            
-            /*
-            Timer timer = new Timer();
-            timer.schedule(new SenderTimer(connectionType, cFrame, network), 0, TIMER_UPPER_BOUND);
-            */
+		
+		int MAX_CONNECTION_ATTEMPTS = 10;
+		boolean isConnectionEstablished = false;
+		ConnectionFrame cframe = new ConnectionFrame(connectionType);
 
-            Frame frame = network.receiveFrame();
-            if (frame instanceof AckFrame)
-                    return true;
-            return false;
+		for (int nbAttempts = 0 ; nbAttempts < MAX_CONNECTION_ATTEMPTS; nbAttempts++) {
+			try {
+				// Send connection frame and start a timer
+				network.sendFrame(cframe);
+				ScheduledFuture<Void> timeout = setTimeout(cframe);
+				// Receive the frame and verify it
+				Frame frame = network.receiveFrame();
+				Timeout t = new Timeout
+				timeout.get();
+				switch (frame.getType()) {
+				// Receive ACK frame, connection is OK
+				case (AckFrame.TYPE) :
+					timeout.cancel(true);
+					return true;
+				// Anything else, reattempt
+				default : 
+					timeout.cancel(true);
+				}
+			} catch (FrameReceptionTimeoutException e) {
+				// Nothing to do, just resend resend
+				System.err.println("Could not receive ACK for frame " + e.getFrame().getNum() + ": Resending");
+			}
+		}
 	}
         
 	public abstract boolean send(InputStream istream) throws IOException ;
