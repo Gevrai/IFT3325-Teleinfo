@@ -14,6 +14,9 @@ public abstract class Frame {
     // Taille maximale d'une frame pour la transmission, en bytes.
     public static final int MAX_FRAME_SIZE = 1500;
     
+    // Le champ num ne peux prendre que les valeurs entre 0 et 7;
+    public static final int MAX_NUM = 8;
+
     // Tailles des différents champs en nombre de bytes.
     public static final int FLAG_FIELD_SIZE = 1;
     public static final int TYPE_FIELD_SIZE = 1;

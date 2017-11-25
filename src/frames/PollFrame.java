@@ -2,8 +2,10 @@ package frames;
 
 public class PollFrame extends Frame {
 	
+	public static final byte TYPE = (byte) 'P';
+	
 	public PollFrame() {
-		super((byte) 'P', (byte) 0);
+		super(TYPE, (byte) 0);
 	}
 
 }
