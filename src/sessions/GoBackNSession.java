@@ -6,7 +6,7 @@ import java.net.UnknownHostException;
 
 public class GoBackNSession extends Session {
 
-	public GoBackNSession(String machineName, String portNumber) throws NumberFormatException, UnknownHostException, IOException {
+	public GoBackNSession(String machineName, int portNumber) throws UnknownHostException, IOException {
 		super(machineName, portNumber);
 	}
 

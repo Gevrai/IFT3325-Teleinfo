@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import sessions.Session;
+import utils.Log;
 
 public abstract class Sender {
 
@@ -16,12 +17,12 @@ public abstract class Sender {
 			System.err.println("Invalid arguments, should be of form : Sender <Nom_Machine> <Numero_Port> <Nom_fichier> <0>");
 			return;
 		}
-		
+                
 		String machineName = args[0];
-		String portNumber = args[1];
+		int portNumber = Integer.parseInt(args[1]);
 		String fileName = args[2];
-		String connectionType = args[3];
-
+		byte connectionType = Byte.parseByte(args[3]);
+                
 		try {
 			InputStream fileStream = new FileInputStream(new File(fileName));
 			// Connect the session
@@ -36,9 +37,10 @@ public abstract class Sender {
 			// Close the connection
 			session.close();
 		} catch (FileNotFoundException e) {
-			System.err.println(e.getMessage());
+			Log.println(e.getMessage());
 			return;
 		} catch (IOException e) {
+			Log.println("Socket IOException, aborting...");
 			return;
 		}
 	}

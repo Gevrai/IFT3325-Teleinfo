@@ -6,7 +6,7 @@ import java.net.UnknownHostException;
 
 public class SelectiveRejectSession extends Session {
 
-	public SelectiveRejectSession(String machineName, String portNumber) throws NumberFormatException, UnknownHostException, IOException {
+	public SelectiveRejectSession(String machineName, int portNumber) throws UnknownHostException, IOException {
 		super(machineName, portNumber);
 	}
 
