@@ -11,6 +11,7 @@ import frames.FrameFactory;
 import frames.MalformedFrameException;
 import utils.BitInputStream;
 import utils.BitOutputStream;
+import utils.Log;
 
 /** This class abstracts all of the underlying logic of sending and receiving single frames
  *  in a socket. It is possible to initialize this network with a communication error ratio.
@@ -54,6 +55,11 @@ public class NetworkAbstraction {
 	public NetworkAbstraction(Socket socket, double errorRatio) throws IOException {
 		this.socket = socket;
 		this.errorRatio = errorRatio;
+	}
+	
+	// Get the name of host attached to socket
+	public String getHostName() {
+		return socket.getLocalAddress().getHostName();
 	}
 	
 	// Simply closes the socket
@@ -137,15 +143,18 @@ public class NetworkAbstraction {
 			try {
 				byte[] receivedBytes = getNextUnstuffedBytesBetweenFlags();
 				// Check crc
-				byte[] crc = crcCalculator.getCRC(receivedBytes );
+				byte[] crc = crcCalculator.getCRC(receivedBytes);
 				for (byte b : crc)
-					if (b != 0) // Drop frame
+					if (b != 0) {
+						Log.verbose("Received frame with invalid CRC... Dropping...");
 						continue;
+					}
 				// Return valid frame
 				return FrameFactory.fromBytes(Arrays.copyOf(receivedBytes , receivedBytes .length-crc.length));
 			}
 			// If there was a problem with the frame, drop it and continue
 			catch (MalformedFrameException e) {
+				Log.verbose("Received invalid frame... Dropping...");
 				continue;
 			}
 		}
@@ -224,8 +233,9 @@ public class NetworkAbstraction {
 
 		receivedBytesOStream.flush();
 		
-		// Received bytes might be erroneous
+		// Maybe introduce errors on reception...
 		byte[] receivedBytes = introduceCommunicationErrors(receivedBytesOStream.toByteArray());
+
 		// Make sure we got a frame ending with a flag and unflag it
 		if(receivedBytes [receivedBytes .length-1] != flag)
 			throw new MalformedFrameException();
@@ -235,6 +245,7 @@ public class NetworkAbstraction {
 	// Introduces fake error on communication based on error ratio
 	private byte[] introduceCommunicationErrors(byte[] inputBytes) {
 		if(Math.random() < this.errorRatio) {
+			Log.verbose("Introducing errors...");
 			byte badByte = (byte) (Math.random()*Byte.SIZE);
 			inputBytes[(int) (Math.random()*inputBytes.length)] = badByte;
 		}
