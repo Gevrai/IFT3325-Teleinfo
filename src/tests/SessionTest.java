@@ -5,6 +5,7 @@ import static org.junit.Assert.fail;
 
 import java.io.IOException;
 
+import org.junit.Test;
 
 import frames.ConnectionFrame;
 import receiver.Receiver;
@@ -12,6 +13,7 @@ import sessions.Session;
 
 class SessionTest {
     
+	@Test
 	void ConnectAndDisconnectTest() throws IOException {
 
 		double receiverErrorRatio = 0.5;
