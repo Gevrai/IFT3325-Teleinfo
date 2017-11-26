@@ -1,7 +1,14 @@
-package receiver;
+package utils;
+
+import java.util.Arrays;
 
 import frames.InformationFrame;
+import frames.RejFrame;
 
+/** Basic implementation of a window on a buffer, to be used for
+ *  Go-back-N and SelectiveReject algorithms.
+ *
+ */
 public class NumWindow {
 	
 	int currentFirst;
@@ -46,6 +53,18 @@ public class NumWindow {
 	public void reset(int currentNum) {
 		this.iframes = new InformationFrame[this.iframes.length];
 		this.currentFirst = currentNum;
+	}
+
+	public RejFrame[] getSelectiveRejects() {
+		RejFrame[] rejs = new RejFrame[this.iframes.length];
+		int rejsAmt = 0;
+		for (int i = this.currentFirst; isInsideWindow((byte) i) ; i = (i+1)%this.iframes.length) {
+			if (this.iframes[i] == null) {
+				rejs[rejsAmt] = new RejFrame((byte) i);
+				rejsAmt++;
+			}
+		}
+		return Arrays.copyOfRange(rejs, 0, rejsAmt);
 	}
 
 }

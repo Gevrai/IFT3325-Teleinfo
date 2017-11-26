@@ -16,6 +16,7 @@ import network.IFrameReceiver;
 import network.NetworkAbstraction;
 import network.ReceiveFrameBackgroundTask;
 import utils.Log;
+import utils.NumWindow;
 
 public class ReceiverWorker extends Thread implements IFrameReceiver {
 	
@@ -48,7 +49,7 @@ public class ReceiverWorker extends Thread implements IFrameReceiver {
 		while (true) {
 			// IOException in receiver background task
 			if (receptionException != null) {
-				return;
+				throw receptionException;
 			}
 			// Is there a new frame to process ?
 			if (receptionQueue.isEmpty())
@@ -70,7 +71,8 @@ public class ReceiverWorker extends Thread implements IFrameReceiver {
 			}
 		}
 		} catch (IOException e) {
-			Log.println("client::" + network.getHostName() + " disconnected...");
+			Log.println("client::" + network.getHostName() + " produced and IOException, disconnecting...");
+			return;
 		}
 	}
 	
@@ -81,8 +83,18 @@ public class ReceiverWorker extends Thread implements IFrameReceiver {
 		network.close();
 	}
 
-	private void processPoll() {
-		throw new UnsupportedOperationException();
+	private void processPoll() throws IOException {
+		switch (this.connectionType) {
+		case ConnectionFrame.SELECTIVE_REJECT :
+			RejFrame[] rejs = window.getSelectiveRejects();
+			for (RejFrame rej : rejs) this.network.sendFrame(rej);
+			return;
+		case ConnectionFrame.GO_BACK_N :
+			this.network.sendFrame(new RejFrame(window.getCurrentNum()));
+			return;
+		default :
+			return;
+		}
 	}
 
 	// With this, it could be possible to change connection type by simply reasking for a new connection
