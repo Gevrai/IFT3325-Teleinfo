@@ -103,7 +103,7 @@ public class ReceiverWorker extends Thread implements IFrameReceiver {
 		this.connectionType = cframe.getNum();
 
 		// Set up num window 
-		int currentNum = window == null ? 0 : window.currentFirst;
+		int currentNum = window == null ? 0 : window.getCurrentNum();
 		switch (connectionType) {
 			case ConnectionFrame.GO_BACK_N : // 2^n - 1
 				this.window = new NumWindow(Frame.MAX_NUM, Frame.MAX_NUM - 1);
