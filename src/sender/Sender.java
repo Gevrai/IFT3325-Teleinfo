@@ -9,6 +9,11 @@ import java.io.InputStream;
 import sessions.Session;
 import utils.Log;
 
+/** Main class for Sender
+ * 
+ *  Usage : Sender <Nom_Machine> <Numero_Port> <Nom_fichier> <0>
+ *
+ */
 public abstract class Sender {
 
 	public static void main(String[] args) {

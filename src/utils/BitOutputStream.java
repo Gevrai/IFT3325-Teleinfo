@@ -3,6 +3,11 @@ package utils;
 import java.io.IOException;
 import java.io.OutputStream;
 
+/* This class provides an abstraction of a bit by bit output to a byte stream.
+ * 
+ * It is not meant to be efficient and one should never use this kind of approach in a real application.
+ * The use case of this (eg. bit stuffing) would normally be done in specialized hardware.
+ */
 public class BitOutputStream {
 	
 	private OutputStream ostream;

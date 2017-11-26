@@ -18,6 +18,11 @@ import network.NetworkAbstraction;
 import network.ReceiveFrameBackgroundTask;
 import utils.Log;
 
+/** Abstract session for connection and disconnection with a receiver.
+ *  This is the heart of the sender side of the program.
+ *  
+ *  Sub-classes need to implement the send() method, based on their algorithm.
+ */
 public abstract class Session implements IFrameReceiver {
 	
 	public static final int MAX_CONNECTION_ATTEMPTS = 10;

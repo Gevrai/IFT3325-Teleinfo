@@ -2,8 +2,8 @@ package network;
 
 import java.io.IOException;
 
-/** Task that is only responsible to receive a frame from a NetworkAbstraction and
- *  notify a session.
+/** Thread that is only responsible of reception of a frame from a NetworkAbstraction and
+ *  notifying a IFrameReceiver.
  *
  */
 public class ReceiveFrameBackgroundTask extends Thread {

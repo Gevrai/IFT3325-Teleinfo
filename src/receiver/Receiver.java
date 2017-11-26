@@ -5,6 +5,11 @@ import java.net.Socket;
 
 import utils.Log;
 
+/** Main class for Receiver
+ * 
+ *  Usage : Receiver <Numero_Port>
+ *
+ */
 public class Receiver {
 	
 	private ServerSocket serverSocket;

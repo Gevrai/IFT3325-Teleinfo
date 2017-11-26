@@ -6,7 +6,7 @@ import java.io.InputStream;
 /* This class provides an abstraction of a bit by bit reception from a byte stream.
  * 
  * It is not meant to be efficient and one should never use this kind of approach in a real application.
- * This kind of thing would normally be done in specialized hardware.
+ * The use case of this (eg. bit stuffing) would normally be done in specialized hardware.
  */
 public class BitInputStream {
 	

@@ -4,6 +4,9 @@ import java.util.Arrays;
 
 public class FrameFactory {
 	
+	/* Factory to instanciate the correct frame type (with verifications) from a received 
+	 * byte array. This should only be used by NetworkAbstraction
+	 */
 	public static Frame fromBytes(byte[] frameBytes) throws MalformedFrameException {
 		
 		// Illegal frameBytes

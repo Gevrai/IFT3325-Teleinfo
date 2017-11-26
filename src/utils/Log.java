@@ -1,5 +1,9 @@
 package utils;
 
+/* Very very simple print class, differentiating between verbose and normal
+ * of program execution.
+ * 
+ */
 public class Log {
 	
 	private final static boolean isVerbose = true;

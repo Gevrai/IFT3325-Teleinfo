@@ -1,5 +1,9 @@
 package frames;
 
+/** Sender attempting connection send this frame first with 
+ *  the wanted connection type.
+ *
+ */
 public class ConnectionFrame extends Frame {
 
 	public static final byte TYPE = (byte) 'C';
@@ -12,6 +16,7 @@ public class ConnectionFrame extends Frame {
 		super(TYPE, connectionType);
 	}
 
+	// Is 'ct' a valid connection type code
 	public static boolean isValidConnectionType(byte ct) {
 		switch (ct) {
 		case ConnectionFrame.GO_BACK_N :
