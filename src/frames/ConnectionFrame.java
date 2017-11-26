@@ -11,5 +11,15 @@ public class ConnectionFrame extends Frame {
 	public ConnectionFrame(byte connectionType) {
 		super(TYPE, connectionType);
 	}
-        
+
+	public static boolean isValidConnectionType(byte ct) {
+		switch (ct) {
+		case ConnectionFrame.GO_BACK_N :
+		case ConnectionFrame.SELECTIVE_REJECT :
+		case ConnectionFrame.STOP_AND_WAIT :
+			return true;
+		default :
+			return false;
+		}
+	}
 }
