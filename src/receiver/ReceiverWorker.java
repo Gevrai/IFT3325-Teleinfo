@@ -18,7 +18,7 @@ import network.ReceiveFrameBackgroundTask;
 import utils.Log;
 import utils.NumWindow;
 
-public class ReceiverWorker extends Thread implements IFrameReceiver {
+public class ReceiverWorker implements IFrameReceiver {
 	
 	private NetworkAbstraction network;
 
@@ -30,8 +30,6 @@ public class ReceiverWorker extends Thread implements IFrameReceiver {
 	private ReceiveFrameBackgroundTask receiverFrameBackgroundTask;
 	private Queue<Frame> receptionQueue = new LinkedList<Frame>();
 	private IOException receptionException = null;
-
-	private NumWindow window;
 	
 	public ReceiverWorker(Socket clientSocket, double errorRatio) throws IOException {
 		this.network = new NetworkAbstraction(clientSocket, errorRatio);
@@ -42,9 +40,7 @@ public class ReceiverWorker extends Thread implements IFrameReceiver {
 	public void setOuputStream(OutputStream ostream) { this.ostream = ostream; }
 	public OutputStream getOuputStream() {return this.ostream; }
 	
-	@Override
-	public void run() {
-		try {
+	public void startProcessing() throws IOException {
 		// Process the frames as they arrive
 		while (true) {
 			// IOException in receiver background task
@@ -58,21 +54,22 @@ public class ReceiverWorker extends Thread implements IFrameReceiver {
 				Frame receivedFrame = receptionQueue.poll();
 				switch (receivedFrame.getType()) {
 				case ConnectionFrame.TYPE :
-					processConnectionFrame((ConnectionFrame) receivedFrame); break;
+					processConnectionFrame((ConnectionFrame) receivedFrame);
+					break;
 				case InformationFrame.TYPE :
-					processInformationFrame((InformationFrame) receivedFrame); break;
+					processInformationFrame((InformationFrame) receivedFrame);
+					break;
 				case PollFrame.TYPE :
-					processPoll(); break;
+					processPoll();
+					break;
 				case FinalFrame.TYPE :
-					disconnect(); break;
+					disconnect();
+					break;
 				default :
-					Log.verbose("Received a unusual frame, ignoring..."); break;
+					Log.verbose("Received a unusual frame, ignoring...");
+					break;
 				}
 			}
-		}
-		} catch (IOException e) {
-			Log.println("client::" + network.getHostName() + " produced and IOException, disconnecting...");
-			return;
 		}
 	}
 	
@@ -83,37 +80,18 @@ public class ReceiverWorker extends Thread implements IFrameReceiver {
 		network.close();
 	}
 
-	private void processPoll() throws IOException {
-		switch (this.connectionType) {
-		case ConnectionFrame.SELECTIVE_REJECT :
-			RejFrame[] rejs = window.getSelectiveRejects();
-			for (RejFrame rej : rejs) this.network.sendFrame(rej);
-			return;
-		case ConnectionFrame.GO_BACK_N :
-			this.network.sendFrame(new RejFrame(window.getCurrentNum()));
-			return;
-		default :
-			return;
-		}
-	}
-
 	// With this, it could be possible to change connection type by simply reasking for a new connection
 	private void processConnectionFrame(ConnectionFrame cframe) throws IOException {
 		// Check connection type is valid and send response
 		this.connectionType = cframe.getNum();
 
 		// Set up num window 
-		int currentNum = window == null ? 0 : window.getCurrentNum();
 		switch (connectionType) {
-			case ConnectionFrame.GO_BACK_N : // 2^n - 1
-				this.window = new NumWindow(Frame.MAX_NUM, Frame.MAX_NUM - 1);
-				break;
-			case ConnectionFrame.SELECTIVE_REJECT : // 2^(n-1)
-				this.window = new NumWindow(Frame.MAX_NUM, Frame.MAX_NUM / 2);
-				break;
+			case ConnectionFrame.GO_BACK_N :
 			case ConnectionFrame.STOP_AND_WAIT :
-				this.window = new NumWindow(Frame.MAX_NUM, 1); // Single frame window
 				break;
+			case ConnectionFrame.SELECTIVE_REJECT :
+				throw new UnsupportedOperationException("SELECTIVE_REJECT not implemented");
 			default :
 				Log.verbose("Unknown connection type received...");
 				Frame rejFrame = new RejFrame((byte) 0);
@@ -121,28 +99,50 @@ public class ReceiverWorker extends Thread implements IFrameReceiver {
 				this.isConnectionEstablished = false;
 				return;
 		}
-
-		window.reset(currentNum);
 		
 		Frame ackFrame = new AckFrame((byte) 0);
 		this.network.sendFrame(ackFrame);
 		this.isConnectionEstablished = true;
 	}
 	
+	byte currentNum = 0;
+	int test = 1;
 	private void processInformationFrame(InformationFrame iframe) throws IOException {
-		// Drop the frame if there was not connection frame sent
+		// Drop the frame if there was no connection formally established
 		if (!isConnectionEstablished)
 			return;
-		// Check if valid with current window, else drop
-		if(!window.put(iframe))
+
+		// Process the frame depending on current protocol
+		switch (this.connectionType) {
+		case ConnectionFrame.GO_BACK_N :
+		case ConnectionFrame.STOP_AND_WAIT :
+			if (iframe.getNum() == currentNum) {
+				// Write data, ACK the frame and wait for next one!
+				Log.println(test++ + " " + new String(iframe.getData()));
+				this.ostream.write(iframe.getData());
+				network.sendFrame(new AckFrame(currentNum));
+				currentNum = (byte) ((currentNum + 1) % Frame.MAX_NUM);
+			} else {
+				// If we receive the wrong frame (not in order), NAK with expected frame
+				// Note that this implicitly tells the sender what frames, if any, were correctly received before
+				network.sendFrame(new RejFrame(currentNum));
+			}
 			return;
-		// Something to process ?
-		if (!window.hasNext())
+		case ConnectionFrame.SELECTIVE_REJECT :
+			throw new UnsupportedOperationException("SELECTIVE_REJECT not implemented");
+		}
+	}
+
+	private void processPoll() throws IOException {
+		switch (this.connectionType) {
+		case ConnectionFrame.STOP_AND_WAIT :
+		case ConnectionFrame.GO_BACK_N :
+			// Tell sender we are waiting for 'currentNum' frame
+			this.network.sendFrame(new RejFrame(currentNum));
 			return;
-		while (window.hasNext())
-			this.ostream.write(window.popNext().getData());
-		// Send ACK frame up until current num
-		network.sendFrame(new AckFrame(window.getCurrentNum()));
+		case ConnectionFrame.SELECTIVE_REJECT :
+			throw new UnsupportedOperationException("SELECTIVE_REJECT not implemented");
+		}
 	}
 
 	@Override

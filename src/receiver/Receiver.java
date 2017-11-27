@@ -2,6 +2,8 @@ package receiver;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 import utils.Log;
 
@@ -14,6 +16,7 @@ public class Receiver {
 	
 	private ServerSocket serverSocket;
 	private double errorRatio;
+	private ReceiverWorker receiverWorker;
 
 	public Receiver(int portNumber, double errorRatio) throws IOException {
 		this.serverSocket = new ServerSocket(portNumber);
@@ -27,12 +30,15 @@ public class Receiver {
 	
 	public int getLocalPort() { return serverSocket.getLocalPort(); }
 	
-	// Instantiates a new thread upon receiving a new connection
-	public void acceptConnections() throws IOException {
+	public ReceiverWorker getReceiverWorker() { return this.receiverWorker; }
+	
+	public void acceptConnectionAndProcess() throws IOException {
 		while (true) {
+			Log.println("Awaiting new connection");
 			Socket clientSocket = serverSocket.accept();
-			ReceiverWorker receiverThread = new ReceiverWorker(clientSocket, errorRatio);
-			receiverThread.start();
+			Log.println("New client attempting connection");
+			this.receiverWorker = new ReceiverWorker(clientSocket, errorRatio);
+			receiverWorker.startProcessing();
 		}
 	}
 
@@ -48,7 +54,7 @@ public class Receiver {
 			int portNumber = Integer.parseUnsignedInt(args[0]);
 			double errorRatio = args.length == 2 ? Double.parseDouble(args[1]) : 0.0;
 			Receiver receiver = new Receiver(portNumber, errorRatio);
-			receiver.acceptConnections();
+			receiver.acceptConnectionAndProcess();
 		} catch (NumberFormatException e) {
 			Log.println("Invalid port, should be a number : " + args[0] + "\n" + e.getMessage());
 			return;

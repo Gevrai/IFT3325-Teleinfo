@@ -68,7 +68,7 @@ public class SessionTest {
 		receiver.getReceiverWorker().setOuputStream(ostream);
 		
 		// Send a string
-		String test = "123456789abcdef123456789abcdef123456789abcdef123456789abcdef123456789abcdef123456789abcde123456789abcdef123456789abcdef123456789abcde123456789abcdef123456789abcdef123456789abcde123456789abcdef123456789abcdef123456789abcde123456789abcdef123456789abcdef123456789abcde123456789abcdef123456789abcdef123456789abcdeffffff";
+		String test = "123456789abcdef123456789abcdef123456789abcdef123456789abcdef123456789abcdef123456789abcde123456789abcdefabcdef123456789abcdef123456789abcdef123456789abcde123456789abcdef";
 		InputStream istream = new ByteArrayInputStream(test.getBytes());
 		session.send(istream);
 		

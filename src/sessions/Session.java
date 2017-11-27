@@ -25,8 +25,8 @@ import utils.Log;
  */
 public abstract class Session implements IFrameReceiver {
 	
-	public static final int MAX_CONNECTION_ATTEMPTS = 10;
-    public static final int TIMEOUT_TIME = 3000; // milliseconds
+	public static final int MAX_CONNECTION_ATTEMPTS = 1000;
+    public static final int TIMEOUT_TIME = 30; // milliseconds
 
 	private ReceiveFrameBackgroundTask receiveFrameBackgroundTask = new ReceiveFrameBackgroundTask(this.network, this);
 	protected Map<Byte, Long> sentFramesNumWithTimestamp = new HashMap<Byte, Long>();
@@ -129,67 +129,4 @@ public abstract class Session implements IFrameReceiver {
 		network.close();
 		return true;
 	}
-        
-	/*
-<<<<<<< HEAD
-	private boolean attemptConnection(byte connectionType) throws IOException {
-		
-		int MAX_CONNECTION_ATTEMPTS = 10;
-		boolean isConnectionEstablished = false;
-		ConnectionFrame cframe = new ConnectionFrame(connectionType);
-
-		for (int nbAttempts = 0 ; nbAttempts < MAX_CONNECTION_ATTEMPTS; nbAttempts++) {
-			try {
-				// Send connection frame and start a timer
-				network.sendFrame(cframe);
-				ScheduledFuture<Void> timeout = setTimeout(cframe);
-				// Receive the frame and verify it
-				Frame frame = network.receiveFrame();
-				Timeout t = new Timeout
-				timeout.get();
-				switch (frame.getType()) {
-				// Receive ACK frame, connection is OK
-				case (AckFrame.TYPE) :
-					timeout.cancel(true);
-					return true;
-				// Anything else, reattempt
-				default : 
-					timeout.cancel(true);
-				}
-			} catch (FrameReceptionTimeoutException e) {
-				// Nothing to do, just resend resend
-				Log.println("Could not receive ACK for frame " + e.getFrame().getNum() + ": Resending");
-			}
-		}
-=======
-	public boolean attemptConnection(byte connectionType) throws IOException, InterruptedException, ExecutionException {
-            
-            try {
-                ConnectionFrame cFrame = new ConnectionFrame(connectionType);
-
-                ExecutorService executor;
-                FutureTask fTask;
-                do{
-                    executor = Executors.newCachedThreadPool();
-                    fTask = new FutureTask(new FrameSenderTask(network, cFrame)); // The SenderCallable object is the task to periodically execute.
-                    executor.submit(fTask);
-
-                    // Wait 3 seconds max. for the thread to terminate (with or
-                    // without an error).
-                    executor.awaitTermination(TIMER_UPPER_BOUND, TimeUnit.SECONDS);
-                    System.out.println("Session says: \"End of the 'do while' loop in the 'attemptConnection' method.\"");
-                }while(fTask.get(TIMER_UPPER_BOUND, TimeUnit.SECONDS) != null); // Reminder: the task (here, 'FrameSenderTask')throws an IOException if the
-                                                                                // 'sent' is not completed and returns 'null' otherwise.
-                System.out.println("Session says: \"Exited 'do while'.\"");
-                
-                Frame frame = network.receiveFrame();
-                if (frame instanceof AckFrame){
-                    return true;
-                }
-            } catch (TimeoutException ex) {
-                Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            return false;
-	}
-*/
 }
