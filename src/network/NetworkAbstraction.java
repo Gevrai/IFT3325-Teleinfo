@@ -146,8 +146,7 @@ public class NetworkAbstraction {
 				byte[] crc = crcCalculator.getCRC(receivedBytes);
 				for (byte b : crc)
 					if (b != 0) {
-						Log.verbose("Received frame with invalid CRC... Dropping...");
-						continue;
+						throw new MalformedFrameException();
 					}
 				// Return valid frame
 				return FrameFactory.fromBytes(Arrays.copyOf(receivedBytes , receivedBytes .length-crc.length));
@@ -155,7 +154,6 @@ public class NetworkAbstraction {
 			// If there was a problem with the frame, drop it and continue
 			catch (MalformedFrameException e) {
 				Log.verbose("Received invalid frame... Dropping...");
-				continue;
 			}
 		}
 	}
