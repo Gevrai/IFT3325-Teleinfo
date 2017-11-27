@@ -6,7 +6,7 @@ package utils;
  */
 public class Log {
 	
-	private final static boolean isVerbose = true;
+	private static boolean isVerbose = false;
 	
 	public static void verbose(String s) {
 		if (isVerbose)
@@ -16,4 +16,6 @@ public class Log {
 	public static void println(String s) {
 		System.out.println(s);
 	}
+	
+	public static void setVerbose(boolean b) { isVerbose = b; }
 }
