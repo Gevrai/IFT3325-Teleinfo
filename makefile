@@ -6,7 +6,7 @@ CLASSPATH := lib/junit-4.12.jar:lib/hamcrest-core-1.3.jar
 
 MAIN-RECEIVER = receiver.Receiver
 MAIN-SENDER = sender.Sender
-TESTS = tests.BitStreamTest tests.NetworkAbstractionTest
+TESTS = tests.BitUtilsTest tests.NetworkAbstractionTest tests.SessionTest
 
 JAVA_FILES := ./src/**/*.java
 
@@ -39,3 +39,4 @@ run-sender : build
 ## tests  			-> Apply test suite to compiled program
 test: build
 	java -cp "$(CLASSPATH):./$(BUILD_DIR)" org.junit.runner.JUnitCore $(TESTS)
+
