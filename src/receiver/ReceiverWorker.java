@@ -75,7 +75,7 @@ public class ReceiverWorker implements IFrameReceiver {
 	
 	private void disconnect() throws IOException {
 		Frame ackFrame = new AckFrame((byte) 0);
-		this.network.sendFrame(ackFrame);
+		// this.network.sendFrame(ackFrame);
 		ostream.close();
 		network.close();
 	}
@@ -118,7 +118,6 @@ public class ReceiverWorker implements IFrameReceiver {
 		case ConnectionFrame.STOP_AND_WAIT :
 			if (iframe.getNum() == currentNum) {
 				// Write data, ACK the frame and wait for next one!
-				Log.println(test++ + " " + new String(iframe.getData()));
 				this.ostream.write(iframe.getData());
 				network.sendFrame(new AckFrame(currentNum));
 				currentNum = (byte) ((currentNum + 1) % Frame.MAX_NUM);

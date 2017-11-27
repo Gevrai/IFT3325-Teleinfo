@@ -34,9 +34,9 @@ public class Receiver {
 	
 	public void acceptConnectionAndProcess() throws IOException {
 		while (true) {
-			Log.println("Awaiting new connection");
+			Log.verbose("\nAwaiting new connection");
 			Socket clientSocket = serverSocket.accept();
-			Log.println("New client attempting connection");
+			Log.verbose("New client attempting connection");
 			this.receiverWorker = new ReceiverWorker(clientSocket, errorRatio);
 			receiverWorker.startProcessing();
 		}

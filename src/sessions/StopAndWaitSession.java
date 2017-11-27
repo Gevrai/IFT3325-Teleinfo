@@ -63,7 +63,6 @@ public class StopAndWaitSession extends Session {
 		while (istream.available() > 0) {
 			// Construct the frame to send
 			nbBytesRead = istream.read(buf);
-			Log.println(new String(Arrays.copyOf(buf, nbBytesRead)));
 			InformationFrame iframe = new InformationFrame(frameCount, Arrays.copyOf(buf, nbBytesRead));
 			sendAndAwaitResponse(iframe);
 			frameCount = (byte) ((frameCount+1)%Frame.MAX_NUM);

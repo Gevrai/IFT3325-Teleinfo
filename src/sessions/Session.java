@@ -4,13 +4,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Queue;
 
 import frames.AckFrame;
 import frames.ConnectionFrame;
+import frames.FinalFrame;
 import frames.Frame;
 import frames.RejFrame;
 import network.IFrameReceiver;
@@ -27,13 +26,12 @@ public abstract class Session implements IFrameReceiver {
 	
 	public static final int MAX_CONNECTION_ATTEMPTS = 1000;
     public static final int TIMEOUT_TIME = 30; // milliseconds
-
-	private ReceiveFrameBackgroundTask receiveFrameBackgroundTask = new ReceiveFrameBackgroundTask(this.network, this);
-	protected Map<Byte, Long> sentFramesNumWithTimestamp = new HashMap<Byte, Long>();
-	protected Queue<Frame> receptionQueue = new LinkedList<Frame>();
-	protected IOException receptionException = null;
     
 	protected NetworkAbstraction network;
+
+	private ReceiveFrameBackgroundTask receiveFrameBackgroundTask = new ReceiveFrameBackgroundTask(this.network, this);
+	protected Queue<Frame> receptionQueue = new LinkedList<Frame>();
+	protected IOException receptionException = null;
 	
 	public Session(String machineName, int portNumber) throws UnknownHostException, IOException {
 		this.network = new NetworkAbstraction(new Socket(machineName, portNumber));
@@ -123,9 +121,10 @@ public abstract class Session implements IFrameReceiver {
 		this.receptionException = e;
 	}
 
-	// Since the protocol doesn't have a proper Disconnect Frame, we abruptly disconnect
+	// Final frame is used to tell the server we are done
 	public boolean close() throws IOException {
 		Log.verbose("Closing connection with host::" + network.getHostName() + "...");
+		network.sendFrame(new FinalFrame());
 		network.close();
 		return true;
 	}

@@ -43,7 +43,7 @@ public class SessionTest {
 	}
 
 	@Test
-	public void ConnectSendTextAndDisconnectTest() throws IOException {
+	public void StopAndWaitSendTextTest() throws IOException {
 		
 		double receiverErrorRatio = 0.5;
 		Log.setVerbose(false);
