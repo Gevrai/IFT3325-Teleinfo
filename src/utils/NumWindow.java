@@ -1,5 +1,7 @@
 package utils;
 
+import java.util.Arrays;
+
 import frames.Frame;
 
 /** Basic implementation of a window on a circular buffer, to be used for
@@ -20,19 +22,27 @@ public class NumWindow {
 		this.windowSize = windowSize % maxNum;
 		this.iframes = new Frame[maxNum];
 		this.timestamps = new long[maxNum];
+		Arrays.fill(this.timestamps, Long.MAX_VALUE);
 	}
 	
 	public byte getCurrentFirstAck() { return (byte) currentFirstAck; }
 	
 	public void ackNext() {
 		this.iframes[currentFirstAck] = null;
-		this.timestamps[currentFirstAck] = 0;
+		this.timestamps[currentFirstAck] = Long.MAX_VALUE;
 		this.currentFirstAck = (byte) ((currentFirstAck+1) % iframes.length);
 	}
 
 	public void ackUpTo(byte num) {
 		while (num != currentFirstAck)
 			ackNext();
+	}
+
+	public void goBackTo(byte toNum) {
+		// Reset timestamps
+		Arrays.fill(this.timestamps, Long.MAX_VALUE);
+		this.currentToSend = this.currentFirstAck;
+		ackUpTo(toNum);
 	}
 	
 	public boolean isInsideWindow(byte num) {
@@ -44,7 +54,7 @@ public class NumWindow {
 	}
 	
 	public boolean hasNextToSend() {
-		return iframes[currentToSend] != null && isInsideWindow(currentToSend);
+		return this.iframes[currentToSend] != null && isInsideWindow(currentToSend);
 	}
 	
 	// Pop next frame to send and time stamp it
@@ -71,15 +81,8 @@ public class NumWindow {
 		return true;
 	}
 
-	public void goBackTo(byte toNum) {
-		// Reset timestamps
-		this.timestamps = new long[this.timestamps.length];
-		this.currentToSend = this.currentFirstAck;
-		ackUpTo(toNum);
-	}
-
 	public boolean hasFirstExpired(long timeoutTime) {
-		return iframes[currentFirstAck] != null && this.timestamps[currentFirstAck] + timeoutTime < System.currentTimeMillis();
+		return iframes[currentFirstAck] != null && (this.timestamps[currentFirstAck] + timeoutTime) < System.currentTimeMillis();
 	}
 
 	public boolean isEmpty() {
@@ -88,6 +91,4 @@ public class NumWindow {
 				return false;
 		return true;
 	}
-
-
 }

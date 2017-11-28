@@ -30,25 +30,23 @@ public class GoBackNSession extends Session {
 		while (istream.available() > 0 || !sendingWindow.isEmpty()) {
 
 			// Check if we need to send anything
-			while (sendingWindow.hasNextToSend())
-				network.sendFrame(sendingWindow.getNextToSendAndStamp());
+			while (sendingWindow.hasNextToSend()) {
+				Frame toSend = sendingWindow.getNextToSendAndStamp();
+				Log.println("Sending frame " + toSend.getNum());
+				network.sendFrame(toSend);
+			}
 
-			// While there is place in window, place a frame and send it
+			// While there is place in window, place a frame in it
 			while (sendingWindow.canPut(currentFrameNum) && istream.available() > 0) {
 				nbBytesRead = istream.read(buf);
 				sentFrame = new InformationFrame(currentFrameNum, Arrays.copyOf(buf, nbBytesRead));
 				sendingWindow.put(sentFrame);
-				network.sendFrame(sendingWindow.getNextToSendAndStamp());
 				currentFrameNum = (byte) ((currentFrameNum+1)%Frame.MAX_NUM);
 			}
 
-			// If first frame in window expired, reset there
-			if (sendingWindow.hasFirstExpired(TIMEOUT_TIME))
-				sendingWindow.goBackTo(sendingWindow.getCurrentFirstAck());
-			
 			// Process received frames
 			if (this.receptionQueue.isEmpty())
-				try { Thread.sleep(10); } catch (Exception e) {}
+				try { Thread.sleep(2); } catch (Exception e) {}
 			while ((receivedFrame = this.receptionQueue.poll()) != null) {
 				switch (receivedFrame.getType()) {
 				case AckFrame.TYPE :
@@ -61,6 +59,12 @@ public class GoBackNSession extends Session {
 				default :
 					Log.verbose("Sender got unusual frame...");
 				}
+			}
+
+			// If first frame in window expired, reset there
+			if (sendingWindow.hasFirstExpired(TIMEOUT_TIME)) {
+				Log.verbose("Sender expired while waiting for " + sendingWindow.getCurrentFirstAck());
+				sendingWindow.goBackTo(sendingWindow.getCurrentFirstAck());
 			}
 		}
 

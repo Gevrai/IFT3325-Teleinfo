@@ -27,13 +27,7 @@ public class SessionTest {
 
 		// Start a receiver in another thread
 		Receiver receiver = new Receiver(0, receiverErrorRatio);
-		Thread t = new Thread() {
-			@Override
-			public void run() { 
-				try { 
-					receiver.acceptConnectionAndProcess();
-				} catch (IOException e) { 
-					fail(); }}};
+		Thread t = new Thread() { @Override public void run() { receiver.acceptConnectionAndProcess();}};
 		t.start();
 
 		// Try connecting and then unconnecting
@@ -51,13 +45,7 @@ public class SessionTest {
 
 		// Start a receiver in another thread
 		Receiver receiver = new Receiver(0, receiverErrorRatio);
-		Thread t = new Thread() {
-			@Override
-			public void run() { 
-				try { 
-					receiver.acceptConnectionAndProcess();
-				} catch (IOException e) { 
-					fail(); }}};
+		Thread t = new Thread() { @Override public void run() { receiver.acceptConnectionAndProcess();}};
 		t.start();
 		
 		// Connect a session to this receiver
@@ -91,13 +79,7 @@ public class SessionTest {
 
 		// Start a receiver in another thread
 		Receiver receiver = new Receiver(0, receiverErrorRatio);
-		Thread t = new Thread() {
-			@Override
-			public void run() { 
-				try { 
-					receiver.acceptConnectionAndProcess();
-				} catch (IOException e) { 
-					fail(); }}};
+		Thread t = new Thread() { @Override public void run() { receiver.acceptConnectionAndProcess();}};
 		t.start();
 		
 		// Connect a session to this receiver

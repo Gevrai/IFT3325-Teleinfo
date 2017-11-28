@@ -25,7 +25,7 @@ public class ReceiverWorker implements IFrameReceiver {
 	private byte connectionType;
 	private boolean isConnectionEstablished = false;
 	
-	private OutputStream ostream = System.out;
+	private OutputStream ostream;
 
 	private ReceiveFrameBackgroundTask receiverFrameBackgroundTask;
 	private Queue<Frame> receptionQueue = new LinkedList<Frame>();
@@ -35,6 +35,7 @@ public class ReceiverWorker implements IFrameReceiver {
 		this.network = new NetworkAbstraction(clientSocket, errorRatio);
 		this.receiverFrameBackgroundTask = new ReceiveFrameBackgroundTask(network, this);
 		this.receiverFrameBackgroundTask.start();
+		this.ostream = System.out;
 	}
 	
 	public void setOuputStream(OutputStream ostream) { this.ostream = ostream; }
@@ -64,7 +65,7 @@ public class ReceiverWorker implements IFrameReceiver {
 					break;
 				case FinalFrame.TYPE :
 					disconnect();
-					break;
+					return;
 				default :
 					Log.verbose("Received a unusual frame, ignoring...");
 					break;
@@ -75,9 +76,8 @@ public class ReceiverWorker implements IFrameReceiver {
 	
 	private void disconnect() throws IOException {
 		Frame ackFrame = new AckFrame((byte) 0);
-		// this.network.sendFrame(ackFrame);
-		ostream.close();
-		network.close();
+		this.network.sendFrame(ackFrame);
+		ostream.flush();
 	}
 
 	// With this, it could be possible to change connection type by simply reasking for a new connection

@@ -32,13 +32,15 @@ public class Receiver {
 	
 	public ReceiverWorker getReceiverWorker() { return this.receiverWorker; }
 	
-	public void acceptConnectionAndProcess() throws IOException {
+	public void acceptConnectionAndProcess() {
 		while (true) {
-			Log.verbose("\nAwaiting new connection");
-			Socket clientSocket = serverSocket.accept();
-			Log.verbose("New client attempting connection");
-			this.receiverWorker = new ReceiverWorker(clientSocket, errorRatio);
-			receiverWorker.startProcessing();
+			try {
+				Log.verbose("\nAwaiting new connection");
+				Socket clientSocket = serverSocket.accept();
+				Log.verbose("New client attempting connection");
+				this.receiverWorker = new ReceiverWorker(clientSocket, errorRatio);
+				receiverWorker.startProcessing();
+			} catch (IOException e) {/* Client disconneted... */ }
 		}
 	}
 

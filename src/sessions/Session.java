@@ -25,7 +25,7 @@ import utils.Log;
 public abstract class Session implements IFrameReceiver {
 	
 	public static final int MAX_CONNECTION_ATTEMPTS = 1000;
-    public static final int TIMEOUT_TIME = 30; // milliseconds
+    public static final int TIMEOUT_TIME = 10; // milliseconds
     
 	protected NetworkAbstraction network;
 
@@ -87,7 +87,7 @@ public abstract class Session implements IFrameReceiver {
 				throw receptionException;
 			// If we did not receive anything, repoll after small delay, else process received frame
 			if (receptionQueue.isEmpty()) {
-				try { Thread.sleep(10); } catch (Exception e) {/*Main thread cannot be killed */}
+				try { Thread.sleep(2); } catch (Exception e) {/*Main thread cannot be killed */}
 			} else {
 				Frame receivedFrame = receptionQueue.poll();
 				// Connection accepted
@@ -122,10 +122,12 @@ public abstract class Session implements IFrameReceiver {
 	}
 
 	// Final frame is used to tell the server we are done
-	public boolean close() throws IOException {
+	public void close() throws IOException {
 		Log.verbose("Closing connection with host::" + network.getHostName() + "...");
 		network.sendFrame(new FinalFrame());
+		// Drop everything in reception queue
+		while (receptionQueue.poll() != null);
+		// Close the network
 		network.close();
-		return true;
 	}
 }
