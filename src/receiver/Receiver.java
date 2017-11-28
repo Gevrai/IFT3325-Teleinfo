@@ -36,46 +36,55 @@ public class Receiver {
 	public ReceiverWorker getReceiverWorker() { return this.receiverWorker; }
 	
 	public void acceptConnectionAndProcess() {
-		while (true) {
-			try {
-				Log.verbose("\nAwaiting new connection");
-				Socket clientSocket = serverSocket.accept();
-				Log.verbose("New client attempting connection");
-				this.receiverWorker = new ReceiverWorker(clientSocket, errorRatio);
-				this.receiverWorker.setOuputStream(this.ostream);
-				receiverWorker.startProcessing();
-			} catch (IOException e) {/* Client disconneted... */ }
-		}
+		try {
+			Log.println("\nAwaiting new connection...");
+			Socket clientSocket = serverSocket.accept();
+			Log.println("New client connection");
+			this.receiverWorker = new ReceiverWorker(clientSocket, errorRatio);
+			this.receiverWorker.setOuputStream(this.ostream);
+			receiverWorker.startProcessing();
+		} catch (IOException e) {/* Client disconnected... */ }
+		Log.println("Client disconnected...");
 	}
 
 	public static void main(String[] args) {
 		// Receiver <Numero_Port>
-		if (args.length == 0 || args.length > 2) {
-			System.out.println("Invalid arguments, should be of form : Receiver <portNumber> [<errorRatio>]");
+		if (args.length == 0) {
+			System.out.println("Invalid arguments, should be of form : Receiver <portNumber> [<errorRatio>] [<outputFileName>]");
 			return;
 		}
 
 		// Creates and run a Receiver instance, verifying args syntax
 		// Prints the reception to a file
 		try { 
+			int portNumber = 0;
+			double errorRatio = 0.0;
 
-			int portNumber = Integer.parseUnsignedInt(args[0]);
-			double errorRatio = args.length > 1 ? Double.parseDouble(args[1]) : 0.0;
-			String outfileName = args.length > 2 ? args[2] : "defaultouput.txt";
+			try { portNumber = Integer.parseUnsignedInt(args[0]); }
+			catch (NumberFormatException e) {
+				Log.println("Invalid port " + args[0] + ", should be an integer\n" + e.getMessage());
+				return;
+			}
+			try { errorRatio = args.length > 1 ? Double.parseDouble(args[1]) : 0.0;
+			if ((errorRatio < 0.0) || (errorRatio >= 1.0)) throw new NumberFormatException();
+			} catch (NumberFormatException e) {
+				Log.println("Invalid error ratio " + args[1] + ", should be 0 <= errorRatio < 1\n");
+				Log.println("Defaulting value to 0.0 (perfect communication");
+			}
 
+			String outfileName = args.length > 2 ? args[2] : "ouput";
 
 			File outfile = new File(outfileName);
-			OutputStream ostream = new FileOutputStream(outfile);
-			if (!outfile.exists())
-				outfile.createNewFile();
+			outfile.delete();
+			outfile.createNewFile();
+
+			OutputStream ostream = new FileOutputStream(outfile, false);
 
 			Receiver receiver = new Receiver(portNumber, errorRatio, ostream);
 
 			receiver.acceptConnectionAndProcess();
 
 		} catch (NumberFormatException e) {
-			Log.println("Invalid port, should be a number : " + args[0] + "\n" + e.getMessage());
-			return;
 		} catch (IOException e) {
 			Log.println(e.getMessage());
 			return;

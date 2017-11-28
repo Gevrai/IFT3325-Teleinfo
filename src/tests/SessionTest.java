@@ -33,6 +33,7 @@ public class SessionTest {
 		Session session = Session.connect("localhost", receiver.getLocalPort(), ConnectionFrame.STOP_AND_WAIT);
 		assertTrue(session != null);
 		
+		// Finish
 		session.close();
 	}
 
