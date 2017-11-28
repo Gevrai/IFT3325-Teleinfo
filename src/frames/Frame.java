@@ -12,7 +12,7 @@ package frames;
 public abstract class Frame {
     
     // Taille maximale d'une frame pour la transmission, en bytes.
-    public static final int MAX_FRAME_SIZE = 1500;
+    public static final int MAX_FRAME_SIZE = 23;
     
     // Le champ num ne peux prendre que les valeurs entre 0 et 7;
     public static final int MAX_NUM = 8;

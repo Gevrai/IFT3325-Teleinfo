@@ -19,6 +19,7 @@ import utils.Log;
 
 public class SessionTest {
     
+	/*
 	@Test
 	public void ConnectAndDisconnectTest() throws IOException {
 
@@ -61,6 +62,46 @@ public class SessionTest {
 		
 		// Connect a session to this receiver
 		Session session = Session.connect("localhost", receiver.getLocalPort(), ConnectionFrame.STOP_AND_WAIT);
+		assertTrue(session != null);
+		
+		// Set up receiver's data output
+		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
+		receiver.getReceiverWorker().setOuputStream(ostream);
+		
+		// Send a string
+		String test = "123456789abcdef123456789abcdef123456789abcdef123456789abcdef123456789abcdef123456789abcde123456789abcdefabcdef123456789abcdef123456789abcdef123456789abcde123456789abcdef";
+		InputStream istream = new ByteArrayInputStream(test.getBytes());
+		session.send(istream);
+		
+		// Compare reception and original string
+		String received = new String(ostream.toByteArray());
+		assertEquals(test, received);
+		assertArrayEquals(test.getBytes(), ostream.toByteArray());
+		
+		// Finish
+		session.close();
+	}
+
+	*/
+	@Test
+	public void GoBackNSendTextTest() throws IOException {
+		
+		double receiverErrorRatio = 0.0;
+		Log.setVerbose(true);
+
+		// Start a receiver in another thread
+		Receiver receiver = new Receiver(0, receiverErrorRatio);
+		Thread t = new Thread() {
+			@Override
+			public void run() { 
+				try { 
+					receiver.acceptConnectionAndProcess();
+				} catch (IOException e) { 
+					fail(); }}};
+		t.start();
+		
+		// Connect a session to this receiver
+		Session session = Session.connect("localhost", receiver.getLocalPort(), ConnectionFrame.GO_BACK_N);
 		assertTrue(session != null);
 		
 		// Set up receiver's data output
