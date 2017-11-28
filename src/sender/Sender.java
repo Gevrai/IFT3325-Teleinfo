@@ -19,7 +19,7 @@ public abstract class Sender {
 	public static void main(String[] args) {
 		// Sender <Nom_Machine> <Numero_Port> <Nom_fichier> <0>
 		if (args.length != 4) {
-			System.err.println("Invalid arguments, should be of form : Sender <Nom_Machine> <Numero_Port> <Nom_fichier> <0>");
+			System.err.println("Invalid arguments, should be of form : Sender <machineName> <portNumber> <fileName> <0>");
 			return;
 		}
                 

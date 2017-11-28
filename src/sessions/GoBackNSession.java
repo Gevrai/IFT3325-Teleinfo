@@ -29,31 +29,30 @@ public class GoBackNSession extends Session {
 		// As long as there is still data to send
 		while (istream.available() > 0 || !sendingWindow.isEmpty()) {
 
-			// Check if we need to send anything
-			while (sendingWindow.hasNextToSend()) {
-				Frame toSend = sendingWindow.getNextToSendAndStamp();
-				Log.println("Sending frame " + toSend.getNum());
-				network.sendFrame(toSend);
-			}
-
-			// While there is place in window, place a frame in it
-			while (sendingWindow.canPut(currentFrameNum) && istream.available() > 0) {
+			// While there is a place in window, place a frame in it if the input still contains data
+			if (sendingWindow.canPut(currentFrameNum) && istream.available() > 0) {
 				nbBytesRead = istream.read(buf);
 				sentFrame = new InformationFrame(currentFrameNum, Arrays.copyOf(buf, nbBytesRead));
 				sendingWindow.put(sentFrame);
 				currentFrameNum = (byte) ((currentFrameNum+1)%Frame.MAX_NUM);
 			}
 
-			// Process received frames
-			if (this.receptionQueue.isEmpty())
-				try { Thread.sleep(2); } catch (Exception e) {}
-			while ((receivedFrame = this.receptionQueue.poll()) != null) {
+			// Check if we need to send anything
+			if (sendingWindow.hasNextToSend()) {
+				Frame toSend = sendingWindow.getNextToSendAndStamp();
+				Log.verbose("Sending frame " + toSend.getNum());
+				network.sendFrame(toSend);
+			}
+
+			// Process next received frame
+			if ((receivedFrame = this.receptionQueue.poll()) != null) {
 				switch (receivedFrame.getType()) {
 				case AckFrame.TYPE :
-					Log.println("Got ack frame for " + receivedFrame.getNum());
+					Log.verbose("Got ack frame for " + receivedFrame.getNum());
 					sendingWindow.ackUpTo(receivedFrame.getNum());
 					break;
 				case RejFrame.TYPE :
+					Log.verbose("Got implicit ack frame for " + receivedFrame.getNum());
 					sendingWindow.goBackTo(receivedFrame.getNum());
 					break;
 				default :

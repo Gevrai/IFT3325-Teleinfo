@@ -19,14 +19,13 @@ import utils.Log;
 
 public class SessionTest {
     
-	/*
 	@Test
 	public void ConnectAndDisconnectTest() throws IOException {
 
-		double receiverErrorRatio = 0.2;
+		double receiverErrorRatio = 0.5;
 
 		// Start a receiver in another thread
-		Receiver receiver = new Receiver(0, receiverErrorRatio);
+		Receiver receiver = new Receiver(0, receiverErrorRatio, null);
 		Thread t = new Thread() { @Override public void run() { receiver.acceptConnectionAndProcess();}};
 		t.start();
 
@@ -44,7 +43,7 @@ public class SessionTest {
 		Log.setVerbose(false);
 
 		// Start a receiver in another thread
-		Receiver receiver = new Receiver(0, receiverErrorRatio);
+		Receiver receiver = new Receiver(0, receiverErrorRatio, null);
 		Thread t = new Thread() { @Override public void run() { receiver.acceptConnectionAndProcess();}};
 		t.start();
 		
@@ -70,15 +69,14 @@ public class SessionTest {
 		session.close();
 	}
 
-	*/
 	@Test
 	public void GoBackNSendTextTest() throws IOException {
 		
 		double receiverErrorRatio = 0.5;
-		Log.setVerbose(true);
+		Log.setVerbose(false);
 
 		// Start a receiver in another thread
-		Receiver receiver = new Receiver(0, receiverErrorRatio);
+		Receiver receiver = new Receiver(0, receiverErrorRatio, null);
 		Thread t = new Thread() { @Override public void run() { receiver.acceptConnectionAndProcess();}};
 		t.start();
 		
