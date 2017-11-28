@@ -29,12 +29,17 @@ build :
 	$(JAVAC) -cp $(CLASSPATH) $(JAVA_FILES)
 
 ## run-receiver	-> Runs the receiver with some default values
-run-receiver : build
+run-receiver : build set-aliases
 	java -cp "$(BUILD_DIR)" $(MAIN-RECEIVER) 3547
 
 ## run-sender		-> Runs the sender with some default values
-run-sender : build
+run-sender : build set-aliases
 	java -cp "$(BUILD_DIR)" $(MAIN-SENDER) localhost 3547 test.txt 0
+
+## set-aliases  -> Set up aliases for running the programs easily
+set-aliases :
+	alias Sender="java -cp "$(BUILD_DIR)" $(MAIN-SENDER)"
+	alias Receiver="java -cp "$(BUILD_DIR)" $(MAIN-RECEIVER)"
 
 ## tests  			-> Apply test suite to compiled program
 test: build
