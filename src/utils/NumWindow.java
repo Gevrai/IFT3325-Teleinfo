@@ -1,6 +1,6 @@
 package utils;
 
-import frames.InformationFrame;
+import frames.Frame;
 
 /** Basic implementation of a window on a circular buffer, to be used for
  *  Go-back-N and SelectiveReject algorithms.
@@ -8,17 +8,17 @@ import frames.InformationFrame;
  */
 public class NumWindow {
 	
-	byte currentFirstAck;
-	byte currentToSend;
-	int windowSize;
-	InformationFrame[] iframes;
-	long[] timestamps;
+	private byte currentFirstAck;
+	private byte currentToSend;
+	private int windowSize;
+	private Frame[] iframes;
+	private long[] timestamps;
 	
 	public NumWindow(int maxNum, int windowSize) {
 		this.currentFirstAck = 0;
 		this.currentToSend = 0;
 		this.windowSize = windowSize % maxNum;
-		this.iframes = new InformationFrame[maxNum];
+		this.iframes = new Frame[maxNum];
 		this.timestamps = new long[maxNum];
 	}
 	
@@ -48,10 +48,10 @@ public class NumWindow {
 	}
 	
 	// Pop next frame to send and time stamp it
-	public InformationFrame getNextToSendAndStamp() {
+	public Frame getNextToSendAndStamp() {
 		if (!hasNextToSend())
 			return null;
-		InformationFrame iframe = this.iframes[currentToSend];
+		Frame iframe = this.iframes[currentToSend];
 		this.timestamps[currentToSend] = System.currentTimeMillis();
 		currentToSend = (byte) ((currentToSend+1) % iframes.length);
 		return iframe;
@@ -63,7 +63,7 @@ public class NumWindow {
 	}
 
 	// Put the frame to be sent in window
-	public boolean put(InformationFrame f) {
+	public boolean put(Frame f) {
 		if (!canPut(f.getNum()))
 			return false;
 		// Add to window
@@ -83,7 +83,7 @@ public class NumWindow {
 	}
 
 	public boolean isEmpty() {
-		for (InformationFrame f : iframes)
+		for (Frame f : iframes)
 			if (f != null)
 				return false;
 		return true;
