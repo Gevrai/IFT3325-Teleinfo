@@ -86,7 +86,7 @@ public class SessionTest {
 	@Test
 	public void GoBackNSendTextTest() throws IOException {
 		
-		double receiverErrorRatio = 0.0;
+		double receiverErrorRatio = 0.5;
 		Log.setVerbose(true);
 
 		// Start a receiver in another thread
