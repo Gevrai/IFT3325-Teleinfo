@@ -45,11 +45,11 @@ run-sender : build set-executables
 set-executable :
 	@echo "Setting up executables"
 	@echo "#!/bin/bash" >Sender
-	@echo "java -cp "bin" sender.Sender $$@" >>Sender
+	@echo "java -cp "bin" sender.Sender \$$@" >>Sender
 	@echo "#!/bin/bash" >Receiver
-	@echo "java -cp "bin" receiver.Receiver $$@" >>Receiver
+	@echo "java -cp "bin" receiver.Receiver \$$@" >>Receiver
 	@echo "#!/bin/bash" >SendAndReceiveTest
-	@echo "java -cp "bin" SendAndReceiveTest $$@" >>SendAndReceiveTest
+	@echo "java -cp "bin" SendAndReceiveTest \$$@" >>SendAndReceiveTest
 	@chmod +x Receiver
 	@chmod +x Sender
 	@chmod +x SendAndReceiveTest
