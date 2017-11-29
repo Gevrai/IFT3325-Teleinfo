@@ -45,7 +45,7 @@ public class ReceiverWorker implements IFrameReceiver {
 
 		try {
 			// Process the frames as they arrive
-			while (true) {
+			while (this.receiverFrameBackgroundTask.isConnected()) {
 				// IOException in receiver background task
 				if (receptionException != null) {
 					throw receptionException;

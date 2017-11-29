@@ -158,6 +158,13 @@ public class NetworkAbstraction {
 		}
 	}
 
+	// Simple function reading istream and throwing IOException if we reached the end of the stream
+	public byte readStream(InputStream istream) throws IOException {
+		int r = istream.read();
+		if (r == -1) throw new IOException("Reached end of stream");
+		return (byte) r;
+	}
+
 	// Get bytes from the socket, unflag and unstuffs it and return a byte array or a MalformedFrameException
 	private byte[] getNextUnstuffedBytesBetweenFlags() throws IOException, MalformedFrameException {
 		InputStream istream = this.socket.getInputStream();
@@ -170,12 +177,12 @@ public class NetworkAbstraction {
 		byte bit = 0;
 
 		// Start flag, assumes that every frame's beginning is aligned with a byte
-		byte current = (byte) istream.read();
+		byte current = readStream(istream);
 		while (current != flag)
-			current = (byte) istream.read();
+			current = readStream(istream);
 		// Make sure current is not a flag
 		while (current == flag)
-			current = (byte) istream.read();
+			current = readStream(istream);
 
 		// Still need to read the current byte... This is not very clean though
 		for (int i=0; i<Byte.SIZE; i++) {
@@ -239,6 +246,5 @@ public class NetworkAbstraction {
 			throw new MalformedFrameException();
 		return Arrays.copyOf(receivedBytes , receivedBytes .length-1);
 	}
-	
 
 }
