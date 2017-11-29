@@ -95,7 +95,6 @@ public class Receiver {
 			receiver.acceptConnectionAndProcess();
 		} catch (IOException e) {
 			Log.println("Could not create ServerSocket on port " + portNumber + "... Aborting");
-			return;
 		}
 		
 		System.exit(0);
