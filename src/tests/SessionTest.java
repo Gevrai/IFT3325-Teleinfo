@@ -22,7 +22,8 @@ public class SessionTest {
 	@Test
 	public void ConnectAndDisconnectTest() throws IOException {
 
-		double receiverErrorRatio = 0.5;
+		double receiverErrorRatio = 0.8;
+		Log.setVerbose(false);
 
 		// Start a receiver in another thread
 		Receiver receiver = new Receiver(0, receiverErrorRatio, null);
@@ -30,6 +31,7 @@ public class SessionTest {
 		t.start();
 
 		// Try connecting and then unconnecting
+		Session.setTimeout(20);
 		Session session = Session.connect("localhost", receiver.getLocalPort(), ConnectionFrame.STOP_AND_WAIT);
 		assertTrue(session != null);
 		
@@ -40,7 +42,7 @@ public class SessionTest {
 	@Test
 	public void StopAndWaitSendTextTest() throws IOException {
 		
-		double receiverErrorRatio = 0.5;
+		double receiverErrorRatio = 0.8;
 		Log.setVerbose(false);
 
 		// Start a receiver in another thread
@@ -49,6 +51,7 @@ public class SessionTest {
 		t.start();
 		
 		// Connect a session to this receiver
+		Session.setTimeout(20);
 		Session session = Session.connect("localhost", receiver.getLocalPort(), ConnectionFrame.STOP_AND_WAIT);
 		assertTrue(session != null);
 		
@@ -82,6 +85,7 @@ public class SessionTest {
 		t.start();
 		
 		// Connect a session to this receiver
+		Session.setTimeout(20);
 		Session session = Session.connect("localhost", receiver.getLocalPort(), ConnectionFrame.GO_BACK_N);
 		assertTrue(session != null);
 		

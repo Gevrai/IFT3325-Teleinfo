@@ -25,7 +25,7 @@ import utils.Log;
 public abstract class Session implements IFrameReceiver {
 	
 	public static final int MAX_CONNECTION_ATTEMPTS = 1000;
-    public static final int TIMEOUT_TIME = 10; // milliseconds
+    public static int TIMEOUT_TIME = 3000; // milliseconds
     
 	protected NetworkAbstraction network;
 
@@ -39,6 +39,8 @@ public abstract class Session implements IFrameReceiver {
 		this.receiveFrameBackgroundTask = new ReceiveFrameBackgroundTask(this.network, this);
 		this.receiveFrameBackgroundTask.start();
 	}
+	
+	public static void setTimeout(int timeout) { TIMEOUT_TIME = timeout; }
 
 	public static Session connect(String machineName, int portNumber, byte connectionType) {
 		Session session;

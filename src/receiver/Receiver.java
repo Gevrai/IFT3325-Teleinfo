@@ -29,6 +29,7 @@ public class Receiver {
 	public Receiver(int portNumber) throws IOException {
 		this.serverSocket = new ServerSocket(portNumber);
 		this.errorRatio = 0.0;
+		this.ostream = System.out;
 	}
 	
 	public int getLocalPort() { return serverSocket.getLocalPort(); }
@@ -37,14 +38,15 @@ public class Receiver {
 	
 	public void acceptConnectionAndProcess() {
 		try {
-			Log.println("\nAwaiting new connection...");
+			Log.verbose("\nAwaiting new connection...");
 			Socket clientSocket = serverSocket.accept();
-			Log.println("New client connection");
+			Log.verbose("New client connection");
 			this.receiverWorker = new ReceiverWorker(clientSocket, errorRatio);
 			this.receiverWorker.setOuputStream(this.ostream);
 			receiverWorker.startProcessing();
-		} catch (IOException e) {/* Client disconnected... */ }
-		Log.println("Client disconnected...");
+		} catch (IOException e) { /* Client disconnected... */ }
+
+		Log.verbose("Client disconnected...");
 	}
 
 	public static void main(String[] args) {
@@ -56,38 +58,46 @@ public class Receiver {
 
 		// Creates and run a Receiver instance, verifying args syntax
 		// Prints the reception to a file
-		try { 
-			int portNumber = 0;
-			double errorRatio = 0.0;
+		int portNumber = 0;
+		double errorRatio = 0.0;
 
-			try { portNumber = Integer.parseUnsignedInt(args[0]); }
-			catch (NumberFormatException e) {
-				Log.println("Invalid port " + args[0] + ", should be an integer\n" + e.getMessage());
-				return;
-			}
-			try { errorRatio = args.length > 1 ? Double.parseDouble(args[1]) : 0.0;
-			if ((errorRatio < 0.0) || (errorRatio >= 1.0)) throw new NumberFormatException();
-			} catch (NumberFormatException e) {
-				Log.println("Invalid error ratio " + args[1] + ", should be 0 <= errorRatio < 1\n");
-				Log.println("Defaulting value to 0.0 (perfect communication");
-			}
+		// Assign port number
+		try { portNumber = Integer.parseUnsignedInt(args[0]); }
+		catch (NumberFormatException e) {
+			Log.println("Invalid port " + args[0] + ", should be an integer\n" + e.getMessage());
+			return;
+		}
 
-			String outfileName = args.length > 2 ? args[2] : "ouput";
+		// Set error ratio (defaults to 0.0)
+		try { errorRatio = args.length > 1 ? Double.parseDouble(args[1]) : 0.0;
+		if ((errorRatio < 0.0) || (errorRatio >= 1.0)) throw new NumberFormatException();
+		} catch (NumberFormatException e) {
+			Log.println("Invalid error ratio " + args[1] + ", should be 0 <= errorRatio < 1\n");
+			Log.println("Defaulting value to 0.0 (perfect communication");
+		}
 
+		// Output file name (defaults to 'output')
+		OutputStream ostream;
+		String outfileName = args.length > 2 ? args[2] : "ouput";
+		try {
 			File outfile = new File(outfileName);
 			outfile.delete();
 			outfile.createNewFile();
-
-			OutputStream ostream = new FileOutputStream(outfile, false);
-
-			Receiver receiver = new Receiver(portNumber, errorRatio, ostream);
-
-			receiver.acceptConnectionAndProcess();
-
-		} catch (NumberFormatException e) {
+			ostream = new FileOutputStream(outfile, false);
 		} catch (IOException e) {
-			Log.println(e.getMessage());
+			Log.println("Could not overwrite file '" + outfileName + "'... Aborting");
 			return;
 		}
+
+		// Start receiver
+		try {
+			Receiver receiver = new Receiver(portNumber, errorRatio, ostream);
+			receiver.acceptConnectionAndProcess();
+		} catch (IOException e) {
+			Log.println("Could not create ServerSocket on port " + portNumber + "... Aborting");
+			return;
+		}
+		
+		System.exit(0);
 	}
 }

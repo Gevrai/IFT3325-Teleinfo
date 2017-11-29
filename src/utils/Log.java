@@ -6,7 +6,7 @@ package utils;
  */
 public class Log {
 	
-	private static boolean isVerbose = false;
+	private static boolean isVerbose = true;
 	
 	public static void verbose(String s) {
 		if (isVerbose)

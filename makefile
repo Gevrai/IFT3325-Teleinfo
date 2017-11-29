@@ -8,12 +8,12 @@ MAIN-RECEIVER = receiver.Receiver
 MAIN-SENDER = sender.Sender
 TESTS = tests.BitUtilsTest tests.NetworkAbstractionTest tests.SessionTest
 
-JAVA_FILES := ./src/**/*.java
+JAVA_FILES := ./src/**/*.java ./src/*.java
 
 JAVAC=javac -d $(BUILD_DIR)
 
 ## all					-> Base rule : Compiles from scratch, apply whole test suite, and run the program
-all: clean build test
+all: clean build test set-executable
 
 ## help					-> Shows this help.
 help:
@@ -37,9 +37,10 @@ run-sender : build set-aliases
 	java -cp "$(BUILD_DIR)" $(MAIN-SENDER) localhost 3547 test.txt 0
 
 ## set-aliases  -> Set up aliases for running the programs easily
-set-aliases :
-	alias Sender="java -cp "$(BUILD_DIR)" $(MAIN-SENDER)"
-	alias Receiver="java -cp "$(BUILD_DIR)" $(MAIN-RECEIVER)"
+set-executable :
+	chmod +x Receiver
+	chmod +x Sender
+	chmod +x SendAndReceiveTest
 
 ## tests  			-> Apply test suite to compiled program
 test: build

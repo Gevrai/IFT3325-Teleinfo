@@ -40,7 +40,7 @@ public class NetworkAbstraction {
 	public static final CRCCalculator crcCalculator = new CRCCalculator(GX16);
 	
 	// Communication error ratio
-	private double errorRatio;
+	private ErrorGenerator errorGenerator;
 
 	// Socket on which the communication is done
 	private Socket socket;
@@ -48,13 +48,13 @@ public class NetworkAbstraction {
 	// Perfect communication network
 	public NetworkAbstraction(Socket socket) throws IOException {
 		this.socket = socket;
-		this.errorRatio = 0;
+		this.errorGenerator = new ErrorGenerator(0.0);
 	}
 
 	// Potentially imperfect communication network
 	public NetworkAbstraction(Socket socket, double errorRatio) throws IOException {
 		this.socket = socket;
-		this.errorRatio = errorRatio;
+		this.errorGenerator = new ErrorGenerator(errorRatio);
 	}
 	
 	// Get the name of host attached to socket
@@ -123,7 +123,7 @@ public class NetworkAbstraction {
 		ostream.flush();
 		
 		// Maybe introduce errors on this communication
-		byte[] bytesToSend = introduceCommunicationErrors(byteOStream.toByteArray());
+		byte[] bytesToSend = errorGenerator.apply(byteOStream.toByteArray());
 		
 		// Send the data
 		this.socket.getOutputStream().write(bytesToSend);
@@ -232,7 +232,7 @@ public class NetworkAbstraction {
 		receivedBytesOStream.flush();
 		
 		// Maybe introduce errors on reception...
-		byte[] receivedBytes = introduceCommunicationErrors(receivedBytesOStream.toByteArray());
+		byte[] receivedBytes = errorGenerator.apply(receivedBytesOStream.toByteArray());
 
 		// Make sure we got a frame ending with a flag and unflag it
 		if(receivedBytes [receivedBytes .length-1] != flag)
@@ -240,13 +240,5 @@ public class NetworkAbstraction {
 		return Arrays.copyOf(receivedBytes , receivedBytes .length-1);
 	}
 	
-	// Introduces fake error on communication based on error ratio
-	private byte[] introduceCommunicationErrors(byte[] inputBytes) {
-		if(Math.random() < this.errorRatio) {
-			Log.verbose("Introducing errors...");
-			byte badByte = (byte) (Math.random()*Byte.SIZE);
-			inputBytes[(int) (Math.random()*inputBytes.length)] = badByte;
-		}
-		return inputBytes;
-	}
+
 }
